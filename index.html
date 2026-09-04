@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HKDSE Indices & Scientific Notation Revision Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .heart-bounce { animation: bounce 1s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20%) scale(1.1); }
+        }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .toast {
+            min-width: 250px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .toast.success { background-color: #10b981; }
+        .toast.error { background-color: #ef4444; }
+        .toast.info { background-color: #3b82f6; }
+        .toast.fade-out { animation: fadeOut 0.5s ease-in forwards; }
+        
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px;}
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .format-btn.active {
+            border-color: #f59e0b !important;
+            background-color: rgba(245, 158, 11, 0.2) !important;
+            color: #fde68a !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 selection:bg-amber-500 selection:text-white">
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="login-screen" class="w-full max-w-md glass-panel rounded-3xl p-8 shadow-2xl transition-all duration-500">
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-4">🚀</div>
+            <h1 class="text-2xl font-bold text-white mb-2">HKDSE Mathematics</h1>
+            <h2 class="text-amber-400 font-semibold tracking-wide uppercase text-sm">Indices & Scientific Notation Revision</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Class (e.g., 4A)</label>
+                <input type="text" id="student-class" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 uppercase" placeholder="4A">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Class Number</label>
+                <input type="number" id="student-no" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500" placeholder="12">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Name</label>
+                <input type="text" id="student-name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500" placeholder="Chan Tai Man">
+            </div>
+            <button onclick="login()" class="w-full mt-6 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition shadow-lg shadow-amber-500/20 active:scale-95">
+                Start Mission
+            </button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hidden w-full max-w-3xl flex flex-col gap-6 transition-all duration-500">
+        
+        <!-- Header -->
+        <div class="glass-panel rounded-2xl p-6 flex justify-between items-center shadow-xl">
+            <div>
+                <h2 class="text-2xl font-bold text-white" id="display-name">Welcome, Student</h2>
+                <p class="text-slate-400 text-sm">Class: <span id="display-class" class="text-amber-400 font-semibold"></span> | No: <span id="display-no" class="text-amber-400 font-semibold"></span></p>
+            </div>
+            <button onclick="logout()" class="text-slate-400 hover:text-white transition text-sm">
+                Switch User 🚪
+            </button>
+        </div>
+
+        <!-- Completion Passport -->
+        <div class="glass-panel rounded-2xl p-6 shadow-xl border border-amber-500/30 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none text-8xl">🎓</div>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-slate-700/60 pb-4">
+                <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    🎓 Completion Passport (學習記錄卡)
+                </h3>
+                <div class="flex flex-wrap gap-2 z-10 justify-end">
+                    <button id="btn-submit-teacher" onclick="submitToTeacher()" class="bg-blue-600 hover:bg-blue-500 border border-blue-400 text-white px-3 py-2 rounded-lg font-semibold transition shadow-lg shadow-blue-500/20 text-sm flex items-center gap-2 active:scale-95">
+                        <span>Submit to Teacher</span> 📧
+                    </button>
+                    <button onclick="resetBadges()" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 text-slate-200 px-3 py-2 rounded-lg transition text-sm active:scale-95">
+                        Reset 🔄
+                    </button>
+                </div>
+            </div>
+
+            <!-- Score Board -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-1">
+                    <div class="text-3xl mb-2" id="badge-icon-1">🔒</div>
+                    <div class="font-bold text-slate-200">Level 1</div>
+                    <div class="text-xs text-slate-400 mb-2">Sci. Notation</div>
+                    <div id="badge-status-1" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-1">0</span> marks</span>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-2">
+                    <div class="text-3xl mb-2" id="badge-icon-2">🔒</div>
+                    <div class="font-bold text-slate-200">Level 2</div>
+                    <div class="text-xs text-slate-400 mb-2">Laws of Indices</div>
+                    <div id="badge-status-2" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-2">0</span> marks</span>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-3">
+                    <div class="text-3xl mb-2" id="badge-icon-3">🔒</div>
+                    <div class="font-bold text-slate-200">Level 3</div>
+                    <div class="text-xs text-slate-400 mb-2">Paper 1 (a)(b)</div>
+                    <div id="badge-status-3" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-3">0</span> marks</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 relative z-10 flex justify-center">
+                <div class="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 rounded-full px-6 py-2 flex items-center gap-3">
+                    <span class="text-lg">🏆</span>
+                    <span class="text-sm font-bold text-amber-300">Total Marks: <span id="total-marks" class="text-xl font-extrabold text-yellow-300">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-6 shadow-xl">
+            <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 text-center">
+                📋 Practice Format (選取題目模式)
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button id="mode-all" onclick="selectFormatMode('all')" class="format-btn active border-2 border-slate-700 bg-slate-800 text-slate-400 py-2.5 px-3 rounded-lg font-bold text-sm transition active:scale-95">
+                    Mixed (混合)
+                </button>
+                <button id="mode-mc" onclick="selectFormatMode('mc')" class="format-btn border-2 border-slate-700 bg-slate-800 text-slate-400 py-2.5 px-3 rounded-lg font-bold text-sm transition active:scale-95">
+                    MC Only (選擇題)
+                </button>
+                <button id="mode-fill" onclick="selectFormatMode('fill')" class="format-btn border-2 border-slate-700 bg-slate-800 text-slate-400 py-2.5 px-3 rounded-lg font-bold text-sm transition active:scale-95">
+                    Conventional (填空/問答)
+                </button>
+            </div>
+            <p id="mode-desc" class="text-xs text-slate-400 mt-3 text-center italic">
+                Will mix Multiple Choice & Conventional Fill-in questions automatically.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button onclick="startGame(1)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-green-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-green-400 transition">Level 1</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🟢</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Scientific notation: convert decimals ↔ sci. notation & calculate with \(a \times 10^n\). (Core)</p>
+            </button>
+
+            <button onclick="startGame(2)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-amber-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-amber-400 transition">Level 2</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🟡</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Laws of indices: multiply, divide, powers, negative indices & base conversion.</p>
+            </button>
+
+            <button onclick="startGame(3)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-red-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-red-400 transition">Level 3</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🔴</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Multi-part (a)(b) simplification, Paper 1 style (DSE P1 Q1, positive indices).</p>
+            </button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden w-full max-w-2xl flex flex-col gap-4">
+        
+        <div class="flex justify-between items-center bg-slate-800 rounded-full px-6 py-3 shadow-lg border border-slate-700">
+            <div class="font-bold text-amber-400" id="level-indicator">Level 1</div>
+            <div class="flex gap-1 text-xl" id="lives-container">
+                <!-- Hearts injected here -->
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="text-slate-300 font-mono bg-slate-900 px-3 py-1 rounded-full text-sm font-semibold">
+                    Q: <span id="q-counter">1/5</span>
+                </div>
+                <div class="text-amber-300 font-mono bg-slate-900 border border-amber-500/30 px-3 py-1 rounded-full text-sm font-semibold">
+                    ⭐ <span id="live-score">0</span>
+                </div>
+            </div>
+            <button onclick="quitGame()" class="text-slate-500 hover:text-red-400 transition text-xs font-bold uppercase tracking-wider">
+                Abort
+            </button>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl text-center min-h-[350px] flex flex-col relative w-full overflow-hidden" id="main-game-area">
+            
+            <div class="w-full flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
+                <div class="flex flex-col text-left">
+                    <h3 class="text-slate-300 text-sm font-semibold" id="question-instruction">Simplify the expression:</h3>
+                    <div class="flex gap-3 flex-wrap">
+                        <span class="text-xs text-amber-400 font-semibold" id="format-hint"></span>
+                        <span class="text-xs text-sky-400 font-semibold" id="paper-hint"></span>
+                        <span class="text-xs text-emerald-400 font-semibold" id="part-label"></span>
+                    </div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button onclick="askAITutor()" class="text-[10px] sm:text-xs bg-purple-600/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-full hover:bg-purple-600/40 transition font-bold active:scale-95 flex items-center gap-1">
+                        Ask AI ✨
+                    </button>
+                    <button onclick="toggleCheatSheet()" class="text-[10px] sm:text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-full hover:bg-blue-600/40 transition active:scale-95 flex items-center gap-1">
+                        Formulas 💡
+                    </button>
+                </div>
+            </div>
+
+            <div id="question-display" class="text-3xl sm:text-4xl text-white mb-6 overflow-x-auto py-6 flex items-center justify-center min-h-[120px]">
+                <!-- MathJax renders here -->
+            </div>
+            
+            <div id="mc-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden w-full mt-auto">
+                <button onclick="submitMCAnswer(0)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+                <button onclick="submitMCAnswer(1)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+                <button onclick="submitMCAnswer(2)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+                <button onclick="submitMCAnswer(3)" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 text-xl transition-all shadow-md active:scale-95 min-h-[64px] flex items-center justify-center"></button>
+            </div>
+
+            <div id="conventional-area" class="hidden flex flex-col items-center gap-4 w-full max-w-md mx-auto mt-auto">
+                <p class="text-[11px] text-slate-400 text-center leading-tight">
+                    Use <code class='bg-slate-800 px-1 py-0.5 rounded text-amber-300 font-mono'>^</code> for powers, <code class='bg-slate-800 px-1 py-0.5 rounded text-amber-300 font-mono'>/</code> for fractions & <code class='bg-slate-800 px-1 py-0.5 rounded text-amber-300 font-mono'>*10^</code> for scientific notation.<br>
+                    E.g. <span class='font-mono text-emerald-400'>x^7/y^4</span> or <span class='font-mono text-emerald-400'>6.52*10^-5</span> or <span class='font-mono text-emerald-400'>0.0000652</span>
+                </p>
+
+                <div class="flex gap-2 w-full">
+                    <input type="text" id="conventional-input" placeholder="e.g. x^7/y^4" class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-lg font-mono text-white outline-none focus:border-amber-500 transition shadow-inner" oninput="updateLivePreview()" onkeypress="handleEnter(event)">
+                    <button onclick="submitFillAnswer()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 rounded-lg text-base transition shadow-md active:scale-95">
+                        Submit
+                    </button>
+                </div>
+
+                <div id="helper-buttons" class="flex flex-wrap gap-2 justify-center w-full mt-1">
+                    <!-- dynamically injected helper buttons -->
+                </div>
+
+                <div class="w-full p-4 bg-slate-900/60 border border-slate-700 rounded-lg text-center min-h-[80px] flex flex-col justify-center items-center mt-2">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Live Math Preview</span>
+                    <div id="math-preview" class="text-xl text-slate-300 min-h-[30px] flex items-center justify-center">\( \text{Empty} \)</div>
+                </div>
+            </div>
+
+            <!-- Level 3: multi-part (a)(b)(c) blocks, each with its own question + answer area -->
+            <div id="l3-area" class="hidden w-full mt-auto">
+                <div id="l3-blocks" class="flex flex-col gap-4"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CHEAT SHEET MODAL -->
+    <div id="cheat-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity" onclick="if(event.target===this) toggleCheatSheet()">
+        <div class="glass-panel p-6 rounded-2xl border border-slate-600 max-w-sm w-full shadow-2xl">
+            <h3 class="text-2xl font-bold text-amber-400 mb-4 border-b border-slate-700 pb-2">Indices & Scientific Notation</h3>
+            <ul class="space-y-4 text-lg font-serif">
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Multiplication:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(a^m \cdot a^n = a^{m+n}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Division:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(\frac{a^m}{a^n} = a^{m-n}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Power of Power:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\((a^m)^n = a^{mn}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Power of Product:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\((ab)^n = a^n b^n\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Negative & Zero:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(a^{-n} = \frac{1}{a^n},\ a^0 = 1\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Power of Fraction:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\((\frac{a}{b})^n = \frac{a^n}{b^n}\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Sci. Notation:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(N = a \times 10^n,\ 1 \le a < 10\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Operations:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(a\times 10^m \cdot b\times 10^n = ab\times 10^{m+n}\)</span></li>
+            </ul>
+            <button onclick="toggleCheatSheet()" class="mt-8 w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg active:scale-95 transition">Close</button>
+        </div>
+    </div>
+
+    <!-- AI TUTOR MODAL -->
+    <div id="ai-tutor-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity" onclick="if(event.target===this) closeAITutor()">
+        <div class="glass-panel border border-purple-500/50 max-w-lg w-full rounded-2xl shadow-2xl p-6 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300 flex items-center gap-2">
+                    <span>✨ AI Tutor (HKDSE 導師)</span>
+                </h3>
+                <button onclick="closeAITutor()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div id="ai-content-area" class="flex-1 overflow-y-auto pr-2 space-y-4 text-slate-200 text-sm sm:text-base leading-relaxed">
+                <!-- AI tutor contents rendered here -->
+            </div>
+            
+            <button onclick="closeAITutor()" class="mt-6 w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-xl transition active:scale-95">
+                Got it, thanks!
+            </button>
+        </div>
+    </div>
+
+    <!-- WRONG ANSWER TECHNIQUE REFLECTION MODAL -->
+    <div id="wrong-reflection-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-md transition-opacity">
+        <div class="glass-panel border-2 border-red-500/40 max-w-md w-full rounded-2xl shadow-2xl p-6 flex flex-col">
+            <div class="flex items-center gap-3 mb-4 border-b border-slate-700 pb-3">
+                <span class="text-3xl">🛑</span>
+                <h3 class="text-xl font-bold text-red-400">Wait! Let's Reflect</h3>
+            </div>
+            <p class="text-slate-300 mb-6 text-sm">You got that one wrong. Before moving on, which <strong>technique</strong> was primarily needed to solve that question?</p>
+
+            <div class="space-y-3">
+                <button onclick="submitWrongReflection('multiply')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Multiplication Law</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(a^m a^n = a^{m+n}\)</span>
+                </button>
+                <button onclick="submitWrongReflection('divide')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Division Law</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(a^m/a^n = a^{m-n}\)</span>
+                </button>
+                <button onclick="submitWrongReflection('power')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Power of a Power</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\((a^m)^n = a^{mn}\)</span>
+                </button>
+                <button onclick="submitWrongReflection('negative')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Negative / Zero Index</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(a^{-n} = 1/a^n\)</span>
+                </button>
+                <button onclick="submitWrongReflection('base_convert')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Base Conversion</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(e.g.\ 4 = 2^2,\ 9 = 3^2\)</span>
+                </button>
+                <button onclick="submitWrongReflection('sci_notation')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Scientific Notation</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(N = a \times 10^n\)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WRONG ANSWER FEEDBACK MODAL -->
+    <div id="feedback-toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-red-950/90 backdrop-blur-md border-2 border-red-500 text-red-100 px-6 py-4 rounded-xl shadow-2xl hidden z-50 text-center max-w-sm w-full transition-all">
+        <div class="flex items-center justify-center gap-2 mb-1">
+            <span class="text-2xl">❌</span>
+            <p class="font-bold text-lg">Incorrect Answer!</p>
+        </div>
+        <p class="text-sm text-red-300 mt-1">Check the signs and coefficients — try expanding your answer back to verify!</p>
+    </div>
+
+    <script>
+        // Deployed Google Apps Script Web App URL
+        const GOOGLE_SCRIPT_URL =
+            'https://script.google.com/macros/s/AKfycbxnrhvFWF82ExoHNXqZRRpaUqus0kJs01w51ygs9r1U3dqgS-32TdpQxxgs0Vd7B9w-/exec';
+
+        let studentProfile = null;
+        let badgeRecords = { level1: false, level2: false, level3: false };
+        let currentLevel = 1;
+        let currentQuestionIndex = 0;
+        let lives = 3;
+        let currentQuestions = [];
+        let selectedFormat = 'all'; // 'all', 'mc', 'fill'
+        let currentQuestionMode = 'mc'; // state for current specific question
+        let currentSets = [];    // Level 3: array of question sets (each set = array of parts)
+        let currentSetIndex = 0;
+        let activePart = null;   // the part currently being answered (for reflection / AI tutor)
+        
+        // --- SCORE BOARD ---
+        // Full marks per level, marks deducted per heart lost. Marks accumulate across replays.
+        const MARKS = {
+            1: { full: 3, perHeart: 1 },
+            2: { full: 9, perHeart: 3 },
+            3: { full: 15, perHeart: 5 }
+        };
+        let scoreTotals = { level1: 0, level2: 0, level3: 0 };
+        
+        // Tracking variables for correct percentage
+        let levelStats = { 
+            level1: { correct: 0, total: 0 }, 
+            level2: { correct: 0, total: 0 }, 
+            level3: { correct: 0, total: 0 } 
+        };
+
+        // --- MATH GENERATOR ENGINE (Indices & Surds, DSE Paper 1/2 style) ---
+        const MathGen = {
+            rand: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+            shuffle: (array) => [...array].sort(() => Math.random() - 0.5),
+            c: (coef, v) => coef === 1 ? v : (coef === -1 ? `-${v}` : `${coef}${v}`),
+            gcd: function(a, b) { return b ? this.gcd(b, a % b) : a; },
+
+            // signed exponent for TeX display: e.g. 5 -> "^{5}", -3 -> "^{-3}"
+            pexp: (e) => e === 0 ? '' : (e > 0 ? `^{${e}}` : `^{-${-e}}`),
+            // letter factor for TeX: x, x^{5}, x^{-3}
+            lfac: (v, e) => e === 0 ? '' : `${v}${e > 0 ? (e === 1 ? '' : `^{${e}}`) : `^{-${-e}}`}`,
+            // answer string with positive indices: {x:7, y:-4} -> "x^7/y^4"
+            monStr: function(map) {
+                const letters = Object.keys(map).sort();
+                let num = '', den = '';
+                letters.forEach(l => {
+                    const e = map[l];
+                    if (e > 0) num += e === 1 ? l : `${l}^${e}`;
+                    else if (e < 0) den += e === -1 ? l : `${l}^${-e}`;
+                });
+                if (num === '' && den === '') return '1';
+                if (den === '') return num;
+                if (num === '') return `1/${den}`;
+                return `${num}/${den}`;
+            },
+            // TeX version of monStr
+            monTex: function(map) {
+                const letters = Object.keys(map).sort();
+                let num = '', den = '';
+                letters.forEach(l => {
+                    const e = map[l];
+                    if (e > 0) num += e === 1 ? l : `${l}^{${e}}`;
+                    else if (e < 0) den += e === -1 ? l : `${l}^{${-e}}`;
+                });
+                if (num === '' && den === '') return '1';
+                if (den === '') return num;
+                if (num === '') return `\\frac{1}{${den}}`;
+                return `\\frac{${num}}{${den}}`;
+            },
+
+            // --- Level 1: scientific notation only (9 types) ---
+            generateL1: function() {
+                const type = this.rand(0, 8);
+                const v = ['x', 'y', 'a', 'm', 'n'][this.rand(0, 4)];
+                let qText = "", ansStr = "", ansTex = "", opts = [], law = 'sci_notation';
+                const instruction = "Answer the scientific notation problem:";
+                
+                if (type === 0) {
+                    // decimal → scientific notation
+                    let mant = `${this.rand(1, 9)}${this.rand(1, 9)}${this.rand(1, 9)}`;
+                    const k = this.rand(4, 7);
+                    const mantTxt = mant[0] + '.' + mant.slice(1);
+                    const decTxt = '0.' + '0'.repeat(k - 1) + mant;
+                    ansStr = `${mantTxt}*10^-${k}`; ansTex = `${mantTxt} \\times 10^{-${k}}`;
+                    qText = `\\text{Express } ${decTxt} \\text{ in scientific notation.}`;
+                    opts = [ansTex, `${mantTxt} \\times 10^{-${k + 1}}`, `${mantTxt} \\times 10^{${k}}`, `${mantTxt} \\times 10^{-${k - 1}}`];
+                } else if (type === 1) {
+                    // scientific notation → decimal
+                    let mant = `${this.rand(1, 9)}${this.rand(1, 9)}${this.rand(1, 9)}`;
+                    const k = this.rand(4, 7);
+                    const mantTxt = mant[0] + '.' + mant.slice(1);
+                    const decTxt = '0.' + '0'.repeat(k - 1) + mant;
+                    ansStr = decTxt; ansTex = decTxt;
+                    qText = `\\text{Express } ${mantTxt} \\times 10^{-${k}} \\text{ as a decimal.}`;
+                    opts = [decTxt, '0.' + '0'.repeat(k) + mant, '0.' + '0'.repeat(k - 2) + mant, mantTxt];
+                } else if (type === 2) {
+                    // find the exponent n
+                    let mant = `${this.rand(1, 9)}${this.rand(1, 9)}`;
+                    const k = this.rand(5, 8);
+                    ansStr = `-${k}`; ansTex = `-${k}`;
+                    qText = `\\text{If } 0.${'0'.repeat(k - 1)}${mant} = ${mant[0]}.${mant[1]} \\times 10^{n} \\text{, find } n.`;
+                    opts = [`-${k}`, `${k}`, `-${k + 1}`, `-${k - 1}`];
+                } else if (type === 3) {
+                    // multiplication (a×10^p)(b×10^q)
+                    const pairs = [[2, 3], [2, 4], [3, 2], [3, 3], [4, 2]];
+                    const [a, b] = pairs[this.rand(0, pairs.length - 1)];
+                    const p = this.rand(2, 5), q = this.rand(-3, -1);
+                    const mant = a * b, exp = p + q;
+                    ansStr = `${mant}*10^${exp}`; ansTex = `${mant} \\times 10^{${exp}}`;
+                    qText = `\\text{Evaluate } (${a} \\times 10^{${p}})(${b} \\times 10^{${q}}).`;
+                    opts = [ansTex, `${mant} \\times 10^{${p - q}}`, `${mant} \\times 10^{${p * q}}`, `${mant} \\times 10^{${exp + 1}}`];
+                } else if (type === 4) {
+                    // division (a×10^p)/(b×10^q)
+                    const pairs = [[8.4, 2], [8.4, 4], [8.4, 7], [8.2, 2], [6.3, 3], [9.6, 3], [9.6, 2], [9.6, 4], [9.2, 2], [4.8, 4], [8.8, 8], [7.2, 2], [7.2, 3], [7.2, 4], [7.2, 6], [5.4, 3], [5.4, 2], [5.6, 2], [5.6, 4], [7.6, 4]];
+                    const [a, b] = pairs[this.rand(0, pairs.length - 1)];
+                    const p = this.rand(4, 7), q = this.rand(1, 3);
+                    const mantTxt = String(Math.round(a / b * 100) / 100);
+                    const exp = p - q;
+                    ansStr = `${mantTxt}*10^${exp}`; ansTex = `${mantTxt} \\times 10^{${exp}}`;
+                    qText = `\\text{Evaluate } \\frac{${a} \\times 10^{${p}}}{${b} \\times 10^{${q}}}.`;
+                    opts = [ansTex, `${mantTxt} \\times 10^{${p + q}}`, `${mantTxt} \\times 10^{${exp + 1}}`, `${a * b} \\times 10^{${exp}}`];
+                } else if (type === 5) {
+                    // addition with different powers of 10
+                    const a1 = this.rand(2, 8), d1 = this.rand(0, 4);
+                    const a2 = this.rand(1, a1), d2 = this.rand(0, 4);
+                    const p = this.rand(3, 6);
+                    const h = (a1 * 10 + d1) * 10 + (a2 * 10 + d2); // in 0.01 units
+                    let mantTxt = (h / 100).toFixed(2);
+                    mantTxt = mantTxt.replace(/0+$/, '').replace(/\.$/, '');
+                    ansStr = `${mantTxt}*10^${p}`; ansTex = `${mantTxt} \\times 10^{${p}}`;
+                    const w1 = (((a1 * 10 + d1) + (a2 * 10 + d2)) / 10).toFixed(1).replace(/0+$/, '').replace(/\.$/, '');
+                    qText = `\\text{Evaluate } ${a1}.${d1} \\times 10^{${p}} + ${a2}.${d2} \\times 10^{${p - 1}}.`;
+                    opts = [ansTex, `${w1} \\times 10^{${p}}`, `${mantTxt} \\times 10^{${p - 1}}`, `${mantTxt} \\times 10^{${p + 1}}`];
+                } else if (type === 6) {
+                    // subtraction with different powers of 10
+                    const a1 = this.rand(3, 9), d1 = this.rand(0, 4);
+                    const a2 = this.rand(1, a1 - 1), d2 = this.rand(0, 4);
+                    const p = this.rand(3, 6);
+                    const h = (a1 * 10 + d1) * 10 - (a2 * 10 + d2); // in 0.01 units
+                    let mantTxt = (h / 100).toFixed(2);
+                    mantTxt = mantTxt.replace(/0+$/, '').replace(/\.$/, '');
+                    ansStr = `${mantTxt}*10^${p}`; ansTex = `${mantTxt} \\times 10^{${p}}`;
+                    const w1 = (((a1 * 10 + d1) - (a2 * 10 + d2)) / 10).toFixed(1).replace(/0+$/, '').replace(/\.$/, '');
+                    qText = `\\text{Evaluate } ${a1}.${d1} \\times 10^{${p}} - ${a2}.${d2} \\times 10^{${p - 1}}.`;
+                    opts = [ansTex, `${w1} \\times 10^{${p}}`, `${mantTxt} \\times 10^{${p - 1}}`, `${mantTxt} \\times 10^{${p + 1}}`];
+                } else if (type === 7) {
+                    // multiplication → decimal (6×10^-4)(2×10^3) = 1.2
+                    const pairs = [[6, 2], [4, 3], [3, 4], [2, 6], [3, 5], [5, 3], [2, 7], [7, 2], [3, 8], [8, 3], [2, 9], [9, 2], [4, 5], [5, 4], [6, 3], [3, 6], [6, 5], [5, 6], [7, 3], [3, 7], [7, 4], [4, 7], [8, 2], [2, 8], [8, 4], [4, 8], [9, 3], [3, 9], [6, 7], [7, 6], [8, 6], [6, 8]];
+                    const [a, b] = pairs[this.rand(0, pairs.length - 1)];
+                    let p = this.rand(-5, -3), q = this.rand(2, 4);
+                    while (p + q === 0) { p = this.rand(-5, -3); q = this.rand(2, 4); }
+                    const E = p + q;
+                    const shiftE = (ee) => {
+                        const ds = String(a * b);
+                        const pointPos = ds.length + ee;
+                        if (pointPos <= 0) return '0.' + '0'.repeat(-pointPos) + ds;
+                        if (pointPos >= ds.length) return ds + '0'.repeat(pointPos - ds.length);
+                        const res = ds.slice(0, pointPos) + '.' + ds.slice(pointPos);
+                        return res.replace(/0+$/, '').replace(/\.$/, '');
+                    };
+                    const decTxt = shiftE(E);
+                    ansStr = decTxt; ansTex = decTxt;
+                    qText = `\\text{Evaluate } (${a} \\times 10^{${p}})(${b} \\times 10^{${q}}).`;
+                    opts = [decTxt, shiftE(E + 1), shiftE(E - 1), `${a + b}`];
+                    if (new Set(opts).size < 4) { opts[3] = `${a * b}00`; }
+                    if (new Set(opts).size < 4) { opts[3] = `${a + b}${a * b}`; }
+                } else {
+                    // comparing magnitudes (which number is the largest)
+                    let nums;
+                    do {
+                        nums = [];
+                        for (let i = 0; i < 3; i++) {
+                            nums.push({ m: this.rand(1, 9) + '.' + this.rand(1, 9), e: this.rand(-6, 6) });
+                        }
+                    } while (new Set(nums.map(x => x.m + '@' + x.e)).size !== 3);
+                    nums.sort((x, y) => (parseFloat(x.m) * Math.pow(10, x.e)) - (parseFloat(y.m) * Math.pow(10, y.e)));
+                    const big = nums[2], mid = nums[1], sm = nums[0];
+                    ansStr = `${big.m}*10^${big.e}`; ansTex = `${big.m} \\times 10^{${big.e}}`;
+                    qText = `\\text{Which of the following is the largest?}`;
+                    opts = [ansTex, `${mid.m} \\times 10^{${mid.e}}`, `${sm.m} \\times 10^{${sm.e}}`, `${sm.m} \\times 10^{${big.e + 1}}`];
+                }
+                
+                return {
+                    instruction: instruction,
+                    paper: "Paper 2",
+                    text: `$ ${qText} $`, answerStr: ansStr, mcAnswerStr: ansTex,
+                    variables: [v], options: this.shuffle(opts.map(o => `$ ${o} $`)),
+                    firstStepLaw: law,
+                    answerType: 'sci'
+                };
+            },
+            // --- Level 2: laws of indices — DSE Paper 2 Q1 patterns (Q492-Q507) ---
+            generateL2: function() {
+                const type = this.rand(0, 12);
+                const v = ["x", "y", "m", "n", "a"][this.rand(0, 4)];
+                let qText = "", ansStr = "", ansTex = "", opts = [], law = 'power';
+                const instruction = "Simplify the expression:";
+
+                if (type === 0) {
+                    // Q492: (3a)^2 · a^3   (c·v)^p · v^q
+                    let c = this.rand(2, 3), p = this.rand(2, 3), q = this.rand(2, 4);
+                    while (Math.pow(c, p) === c * p || p + q === p * q || p + q === p * q + 1) { c = this.rand(2, 3); p = this.rand(2, 3); q = this.rand(2, 4); }
+                    const coef = Math.pow(c, p), exp = p + q;
+                    ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
+                    qText = `\\text{Simplify } (${c}${v})^{${p}} \\cdot ${v}^{${q}}`;
+                    opts = [ansTex, `${c}${v}^{${exp}}`, `${coef}${v}^{${p * q + 1}}`, `${coef}${v}^{${exp + 1}}`];
+                    law = 'power';
+                } else if (type === 1) {
+                    // Q494: (2x^4)^3 / (2x^5)
+                    let c = this.rand(2, 3), p = this.rand(3, 4), q = this.rand(2, 5);
+                    while (c * p <= q || c * p - q === c * p + q - 1) { q = this.rand(2, 5); }
+                    const coef = Math.pow(c, c - 1), exp = c * p - q;
+                    ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
+                    qText = `\\text{Simplify } \\frac{(${c}${v}^{${p}})^{${c}}}{${c}${v}^{${q}}}`;
+                    opts = [ansTex, `${coef}${v}^{${c * p + q}}`, `${coef + c}${v}^{${exp}}`, `${coef}${v}^{${exp + 1}}`];
+                    law = 'power';
+                } else if (type === 2) {
+                    // Q497: (3y^6)^4 / (3y^2)
+                    let c = this.rand(2, 3), p = this.rand(4, 6), q = this.rand(2, 3);
+                    while (4 * p <= q) { q = this.rand(2, 3); }
+                    const coef = Math.pow(c, 3), exp = 4 * p - q;
+                    ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
+                    qText = `\\text{Simplify } \\frac{(${c}${v}^{${p}})^{4}}{${c}${v}^{${q}}}`;
+                    opts = [ansTex, `${c}${v}^{${exp}}`, `${coef}${v}^{${4 * p + q}}`, `${coef * c}${v}^{${exp}}`];
+                    law = 'power';
+                } else if (type === 3) {
+                    // Q496: (2n^3)^-5 = 1/(32n^15)
+                    let c = this.rand(2, 3), p = this.rand(2, 3), q = this.rand(3, 5);
+                    const coef = Math.pow(c, q), exp = p * q;
+                    ansStr = `1/${coef}${v}^${exp}`; ansTex = `\\frac{1}{${coef}${v}^{${exp}}}`;
+                    qText = `\\text{Simplify } (${c}${v}^{${p}})^{-${q}}`;
+                    opts = [ansTex, `\\frac{1}{${coef * c}${v}^{${exp}}}`, `\\frac{1}{${coef}${v}^{${p + q}}}`, `${coef}${v}^{${exp}}`];
+                    law = 'negative';
+                } else if (type === 4) {
+                    // Q501: (6x^7)^2 / (4x^5)   (coefA²/coefB must be an integer)
+                    const pairs = [[4, 2, 5, 3], [4, 2, 7, 5], [6, 4, 7, 5], [6, 4, 5, 3], [8, 4, 5, 2], [8, 4, 7, 3], [9, 3, 5, 2], [9, 3, 7, 4], [10, 5, 7, 3], [12, 4, 5, 2], [6, 4, 5, 3], [4, 2, 5, 3]];
+                    const [coefA, coefB, p, q] = pairs[this.rand(0, pairs.length - 1)];
+                    const coef = (coefA * coefA) / coefB, exp = 2 * p - q;
+                    ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
+                    qText = `\\text{Simplify } \\frac{(${coefA}${v}^{${p}})^{2}}{${coefB}${v}^{${q}}}`;
+                    opts = [ansTex, `\\frac{${coefA * coefA}}{${coefB}${v}^{${exp}}}`, `${coef}${v}^{${exp + 1}}`, `${coef}${v}^{${2 * p + q}}`];
+                    law = 'power';
+                } else if (type === 5) {
+                    // Q502: 6x^8 / (3x^5)^2  — only pairs where 2q - p >= 2 (variable ends in numerator, exponent >= 2)
+                    const pairs = [[4, 2, 5, 4], [4, 2, 7, 5], [8, 4, 7, 5], [12, 4, 5, 4], [18, 6, 5, 4], [16, 4, 7, 5], [20, 5, 6, 4], [6, 3, 5, 4], [18, 6, 7, 5], [16, 4, 9, 6], [12, 4, 7, 5], [8, 4, 9, 6]];
+                    const [coefA, coefB, p, q] = pairs[this.rand(0, pairs.length - 1)];
+                    const j = 2 * q - p;             // always >= 2 by pair selection
+                    const g = this.gcd(coefA, coefB * coefB);
+                    const nd = coefA / g, dd = (coefB * coefB) / g;
+                    const vT = `${v}^{${j}}`;
+                    const numPart = nd === 1 ? vT : `${nd}${vT}`;
+                    ansStr = dd === 1 ? numPart : `${numPart}/${dd}`;
+                    ansTex = dd === 1 ? numPart : `\\frac{${numPart}}{${dd}}`;
+                    qText = `\\text{Simplify } \\frac{${coefA}${v}^{${p}}}{(${coefB}${v}^{${q}})^{2}}`;
+                    const optNum = (coef, exp, den) => {
+                        const np = coef === 1 ? `${v}^{${exp}}` : `${coef}${v}^{${exp}}`;
+                        return den === 1 ? np : `\\frac{${np}}{${den}}`;
+                    };
+                    opts = [ansTex, optNum(nd, j + 1, dd), optNum(nd, j - 1, dd), optNum(nd * 2, j, dd)];
+                    law = 'divide';
+                } else if (type === 6) {
+                    // Q500: 8^(2v+1) / 4^(3v+1)
+                    ansStr = `2`; ansTex = `2`;
+                    qText = `\\text{Simplify } \\frac{8^{2${v}+1}}{4^{3${v}+1}}`;
+                    opts = [`2`, `2^{${v}}`, `2^{-${v}}`, `1`];
+                    law = 'base_convert';
+                } else if (type === 7) {
+                    // Q503: (2^n · 8^n) / 64^n
+                    ansStr = `4^-${v}`; ansTex = `4^{-${v}}`;
+                    qText = `\\text{Simplify } \\frac{2^{${v}} \\cdot 8^{${v}}}{64^{${v}}}`;
+                    opts = [ansTex, `4^{${v}}`, `4^{2${v}}`, `4^{-3${v}}`];
+                    law = 'base_convert';
+                } else if (type === 8) {
+                    // Q504: 81^(2v+3) / (27^(v+1))^2
+                    ansStr = `3^(2${v}+6)`; ansTex = `3^{2${v}+6}`;
+                    qText = `\\text{Simplify } \\frac{81^{2${v}+3}}{(27^{${v}+1})^{2}}`;
+                    opts = [ansTex, `3^{2${v}+12}`, `3^{2${v}}`, `3^{2${v}+3}`];
+                    law = 'base_convert';
+                } else if (type === 9) {
+                    // Q505: 4^(v+2) · 3^(2v+4)
+                    ansStr = `6^(2${v}+4)`; ansTex = `6^{2${v}+4}`;
+                    qText = `\\text{Simplify } 4^{${v}+2} \\cdot 3^{2${v}+4}`;
+                    opts = [ansTex, `6^{${v}+2}`, `6^{4${v}+8}`, `12^{2${v}+4}`];
+                    law = 'base_convert';
+                } else if (type === 10) {
+                    // Q498: 8^a · 5^(3a)
+                    let a = this.rand(2, 4);
+                    const b = a * 3;
+                    ansStr = `10^${b}`; ansTex = `10^{${b}}`;
+                    qText = `\\text{Simplify } 8^{${a}} \\cdot 5^{${b}}`;
+                    opts = [ansTex, `10^{${a + b}}`, `40^{${b}}`, `10^{${b * 2}}`];
+                    law = 'base_convert';
+                } else {
+                    // Q506: (2v)^3 / (4v^-5)^-1
+                    const c = this.rand(2, 3);
+                    ansStr = `32/${v}^2`; ansTex = `\\frac{32}{${v}^{2}}`;
+                    qText = `\\text{Simplify } \\frac{(${c}${v})^{3}}{(4${v}^{-5})^{-1}}`;
+                    opts = [ansTex, `\\frac{2}{${v}^{2}}`, `\\frac{8}{${v}^{2}}`, `\\frac{32}{${v}^{8}}`];
+                    law = 'negative';
+                }
+
+                return {
+                    instruction: instruction,
+                    paper: "Paper 2",
+                    text: `$ ${qText} $`, answerStr: ansStr, mcAnswerStr: ansTex,
+                    variables: [v],
+                    options: this.shuffle(opts.map(o => `$ ${o} $`)),
+                    firstStepLaw: law
+                };
+            },
+
+            
+            // --- Level 3: (a)(b) sets from sort_paper1.pdf pg 69 (Q221-234) ---
+            generateL3Set: function() {
+                const t = this.rand(0, 7);
+                if (t === 0) return this.setI1();
+                if (t === 1) return this.setI2();
+                if (t === 2) return this.setI3();
+                if (t === 3) return this.setI4();
+                if (t === 4) return this.setI5();
+                if (t === 5) return this.setI6();
+                if (t === 6) return this.setI7();
+                return this.setI8();
+            },
+            
+            // helper: build one part from fraction params (v^a u^b)^c / (v^d u^e)
+            partFrac: function(v, u, a, b, c, d, e, law) {
+                const map = {};
+                map[v] = a * c - d;
+                map[u] = b * c - e;
+                const ansStr = this.monStr(map);
+                const ansTex = this.monTex(map);
+                const inner = `${this.lfac(v, a)}${this.lfac(u, b)}`;
+                const numIn = c === 1 ? inner : `(${inner})^{${c}}`;
+                const denIn = `${this.lfac(v, d)}${this.lfac(u, e)}`;
+                // wrong options: perturb exponents
+                const m1 = Object.assign({}, map); m1[v] += 1;
+                const m2 = Object.assign({}, map); m2[u] += 1;
+                const m3 = Object.assign({}, map); m3[v] -= 1;
+                return {
+                    instruction: "Simplify and express your answer with positive indices:",
+                    displayTex: `\\frac{${numIn}}{${denIn}}`,
+                    answerStr: ansStr, mcAnswerStr: ansTex,
+                    variables: [v, u], firstStepLaw: law,
+                    options: this.shuffle([ansTex, this.monTex(m1), this.monTex(m2), this.monTex(m3)].map(o => `$ ${o} $`))
+                };
+            },
+            
+            // T1: Q221 style ??(xy)^2 / x^{-5} y^6  ?? x^7 / y^4
+            setI1: function() {
+                const v = ['x', 'm', 'a'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'm' ? 'n' : 'b');
+                const k = this.rand(1, 2);
+                const parts = [
+                    this.partFrac(v, u, 1, 1, 2, -5, 6, 'use_a'),
+                    this.partFrac(v, u, k, 1, 3, 4, -5, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T2: Q222 style ??(m^{-2} n^6)^5 / m^4 n^{-3}  ?? n^33 / m^14
+            setI2: function() {
+                const v = ['m', 'x', 'p'][this.rand(0, 2)], u = v === 'm' ? 'n' : (v === 'x' ? 'y' : 'q');
+                const parts = [
+                    this.partFrac(v, u, -2, 6, 5, 4, -3, 'use_a'),
+                    this.partFrac(v, u, -1, 4, 4, 3, -2, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T3: Q227 style ??(x^8 y^7)^2 / x^5 y^{-6}  ?? x^11 y^20
+            setI3: function() {
+                const v = ['x', 'a', 'm'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'a' ? 'b' : 'n');
+                const k = this.rand(6, 9), j = this.rand(5, 7);
+                const parts = [
+                    this.partFrac(v, u, k, j, 2, k - 3, -6, 'use_a'),
+                    this.partFrac(v, u, k - 2, j - 1, 3, k - 4, 2, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T4: Q228 style ??(m^4 n^{-1})^3 / (m^{-2})^5  ?? m^22 / n^3
+            setI4: function() {
+                const v = ['m', 'x', 'a'][this.rand(0, 2)], u = v === 'm' ? 'n' : (v === 'x' ? 'y' : 'b');
+                const parts = [
+                    this.partFrac(v, u, 4, -1, 3, -10, 0, 'use_a'),
+                    this.partFrac(v, u, 3, -2, 2, -6, 0, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T5: Q225 style ??(xy^3)^{-2} / y^4  ?? 1 / (x^2 y^10)
+            setI5: function() {
+                const v = ['x', 'm', 'a'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'm' ? 'n' : 'b');
+                const parts = [
+                    this.partFrac(v, u, 1, 3, -2, 0, 4, 'use_a'),
+                    this.partFrac(v, u, 2, 1, -3, 0, 3, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T6: Q230 style ??(mn^{-2})^5 / m^{-4}  ?? m^9 / n^10
+            setI6: function() {
+                const v = ['m', 'x', 'p'][this.rand(0, 2)], u = v === 'm' ? 'n' : (v === 'x' ? 'y' : 'q');
+                const parts = [
+                    this.partFrac(v, u, 1, -2, 5, -4, 0, 'use_a'),
+                    this.partFrac(v, u, 2, -1, 3, -5, 0, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T7: Q229 style ??xy^7 / (x^{-2} y^3)^4  ?? x^9 / y^5
+            setI7: function() {
+                const v = ['x', 'a', 'm'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'a' ? 'b' : 'n');
+                const k = this.rand(6, 8);
+                const parts = [
+                    this.partFrac(v, u, 1, k, 1, -8, 12, 'use_a'),
+                    this.partFrac(v, u, 1, k - 2, 1, -6, 9, 'use_a')
+                ];
+                return parts;
+            },
+            
+            // T8: Q233 style ??x^{-8} y / (x^7 y^9)^{-6}  ?? x^34 y^55
+            setI8: function() {
+                const v = ['x', 'a', 'p'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'a' ? 'b' : 'q');
+                const parts = [
+                    this.partFrac(v, u, -8, 1, 1, -42, -54, 'use_a'),
+                    this.partFrac(v, u, -6, 1, 1, -35, -45, 'use_a')
+                ];
+                return parts;
+            }
+        };
+
+        
+                
+        
+        
+        // --- ANSWER CANONICALIZATION (indices & scientific notation) ---
+
+        function gcd2(a, b) { return b ? gcd2(b, a % b) : a; }
+
+        // exponents can be linear polynomials like "n+1", "2n-3", "4x", "x"
+        // represent as { coef: {letter: number}, cst: number }
+        function parsePoly(e) {
+            let s = e.toLowerCase().replace(/\s+/g, '');
+            const out = { coef: {}, cst: 0 };
+            const terms = s.match(/[+-]?[^+-]+/g) || [s];
+            for (const t of terms) {
+                if (!t) continue;
+                const sign = t[0] === '-' ? -1 : 1;
+                const body = t.replace(/^[+-]/, '');
+                const m = body.match(/^(\d*)([a-z])$/);
+                if (m) {
+                    const c = m[1] === '' ? 1 : parseInt(m[1]);
+                    out.coef[m[2]] = (out.coef[m[2]] || 0) + sign * c;
+                } else if (/^\d+$/.test(body)) {
+                    out.cst += sign * parseInt(body);
+                }
+            }
+            return out;
+        }
+
+        function polyKey(p) {
+            const ks = Object.keys(p.coef).sort();
+            const cs = ks.map(l => `${l}#${p.coef[l]}`).join('&');
+            return cs + '|' + p.cst;
+        }
+
+        function polyScale(p, k) {
+            const out = { coef: {}, cst: p.cst * k };
+            Object.keys(p.coef).forEach(l => { out.coef[l] = p.coef[l] * k; });
+            return out;
+        }
+
+        function baseFactors(base) {
+            // returns { prime: power } e.g. 16 -> {2:4}, 6 -> {2:1,3:1}, 10 -> {2:1,5:1}, 40 -> {2:3,5:1}
+            const out = {};
+            let b = base;
+            for (const p of [2, 3, 5, 7, 11]) {
+                if (b === 1) break;
+                while (b % p === 0) { out[p] = (out[p] || 0) + 1; b /= p; }
+            }
+            if (b !== 1) return null;
+            return out;
+        }
+
+        // parse one side of a fraction (product of factors, no '/')
+        function parseNumSide(t) {
+            const letters = {}, bases = {};   // bases: "16" -> poly
+            const coef = [1, 1];
+            t = t.toLowerCase().replace(/\s+/g, '');
+            if (!t || t === '1') return { coef, letters, bases };
+            // split on '*' into factors (e.g. 8^x*2^x)
+            const factors = t.split('*');
+            for (const factor of factors) {
+                if (!factor) continue;
+                const parsed = parseSingleFactor(factor);
+                coef[0] *= parsed.coef[0];
+                coef[1] *= parsed.coef[1];
+                Object.keys(parsed.letters).forEach(l => { letters[l] = (letters[l] || 0) + parsed.letters[l]; });
+                Object.keys(parsed.bases).forEach(b => {
+                    if (!bases[b]) bases[b] = { coef: {}, cst: 0 };
+                    const cur = bases[b];
+                    Object.keys(parsed.bases[b].coef).forEach(l => { cur.coef[l] = (cur.coef[l] || 0) + parsed.bases[b].coef[l]; });
+                    cur.cst += parsed.bases[b].cst;
+                });
+            }
+            return { coef, letters, bases };
+        }
+
+        function parseSingleFactor(t) {
+            const letters = {}, bases = {};
+            const coef = [1, 1];
+            if (!t || t === '1') return { coef, letters, bases };
+            // fraction-like factor inside? not expected; reject up to safe:
+            let i = 0, firstNum = '';
+            while (i < t.length && /\d/.test(t[i])) { firstNum += t[i]; i++; }
+            let rest = t.slice(i);
+            if (firstNum !== '') {
+                if (rest.startsWith('^')) {
+                    const m = rest.match(/^\^\(?([^()]+)\)?$/);
+                    const expStr = m ? m[1] : rest.slice(1);
+                    if (/^[+-]?\d+$/.test(expStr)) {
+                        const e = parseInt(expStr);
+                        if (e >= 0) coef[0] = Math.pow(parseInt(firstNum), e);
+                        else coef[1] = Math.pow(parseInt(firstNum), -e);
+                    } else {
+                        bases[firstNum] = parsePoly(expStr);
+                    }
+                    rest = '';
+                } else {
+                    coef[0] = parseInt(firstNum);
+                }
+            }
+            const lre = /([a-z])(?:\^\(?(-?\d+)\)?)?/g;
+            let m2;
+            while ((m2 = lre.exec(rest)) !== null) {
+                letters[m2[1]] = (letters[m2[1]] || 0) + (m2[2] !== undefined ? parseInt(m2[2]) : 1);
+            }
+            return { coef, letters, bases };
+        }
+
+        // canonical key for monomial/fraction index answers (x^7/y^4, 12x^5, 16^n, 3^6, 9)
+        function canonNum(s) {
+            let str = String(s).toLowerCase().replace(/\s+/g, '');
+            if (!str) return '?';
+            str = str.replace(/\(\)/g, '');                         // empty parens
+            // strip parens unless they enclose an exponent after ^
+            while (/\^\([^()]*\)/.test(str)) str = str.replace(/\^\(([^()]*)\)/g, '^$1');
+            str = str.replace(/[()]/g, '');
+            const parts = str.split('/');
+            if (parts.length > 2) return '?' + str;
+            const num = parseNumSide(parts[0] || '1');
+            const den = parts.length > 1 ? parseNumSide(parts[1]) : { coef: [1, 1], letters: {}, bases: {} };
+            let n = num.coef[0] * den.coef[1], d = num.coef[1] * den.coef[0];
+            const g = gcd2(Math.abs(n), Math.abs(d));
+            n /= g; d /= g;
+            if (d < 0) { n = -n; d = -d; }
+            const letters = {};
+            Object.keys(num.letters).forEach(k => letters[k] = (letters[k] || 0) + num.letters[k]);
+            Object.keys(den.letters).forEach(k => letters[k] = (letters[k] || 0) - den.letters[k]);
+            Object.keys(letters).forEach(k => { if (letters[k] === 0) delete letters[k]; });
+            // merge bases, converting to prime powers: 16^n -> 2^{4n}; 4^{2n}->2^{4n}
+            const primeBases = {};   // prime -> poly (sum of all exponent contributions)
+            const plainBases = {};   // non-prime-power bases (e.g. 10) -> poly
+            const addBase = (map, base, poly, sign) => {
+                const cur = map[base] || { coef: {}, cst: 0 };
+                const sc = sign;
+                Object.keys(poly.coef).forEach(l => {
+                    cur.coef[l] = (cur.coef[l] || 0) + sc * poly.coef[l];
+                });
+                cur.cst += sc * poly.cst;
+                map[base] = cur;
+            };
+            Object.keys(num.bases).forEach(b => {
+                const fac = baseFactors(parseInt(b));
+                const poly = num.bases[b];
+                if (fac) {
+                    Object.keys(fac).forEach(p => addBase(primeBases, p, polyScale(poly, fac[p]), 1));
+                } else addBase(plainBases, b, poly, 1);
+            });
+            Object.keys(den.bases).forEach(b => {
+                const fac = baseFactors(parseInt(b));
+                const poly = den.bases[b];
+                if (fac) {
+                    Object.keys(fac).forEach(p => addBase(primeBases, p, polyScale(poly, fac[p]), -1));
+                } else addBase(plainBases, b, poly, -1);
+            });
+            // fold constant-exponent prime bases into the coefficient (e.g. 3^{2n}·9^{1-2n} -> 3^2 = 9)
+            Object.keys(primeBases).forEach(p => {
+                const poly = primeBases[p];
+                const hasLetters = Object.keys(poly.coef).some(l => poly.coef[l] !== 0);
+                if (!hasLetters && poly.cst !== 0) {
+                    const e = poly.cst;
+                    if (e > 0) n *= Math.pow(parseInt(p), e);
+                    else d *= Math.pow(parseInt(p), -e);
+                    delete primeBases[p];
+                }
+            });
+            // drop zero polys
+            Object.keys(primeBases).forEach(p => {
+                const poly = primeBases[p];
+                if (!Object.keys(poly.coef).some(l => poly.coef[l] !== 0) && poly.cst === 0) delete primeBases[p];
+            });
+            const basesKey = {};
+            Object.keys(primeBases).sort().forEach(p => { basesKey['p' + p] = polyKey(primeBases[p]); });
+            Object.keys(plainBases).sort().forEach(b => { basesKey['b' + b] = polyKey(plainBases[b]); });
+            const g2 = gcd2(Math.abs(n), Math.abs(d));
+            n /= g2; d /= g2;
+            if (d < 0) { n = -n; d = -d; }
+            return JSON.stringify({ c: [n, d], l: letters, b: basesKey });
+        }
+
+        // canonical key for scientific-notation answers (6.52*10^-5, 0.0000652, 1.2, 7200, -7)
+        function canonSci(s) {
+            let str = String(s).toLowerCase().replace(/\s+/g, '').replace(/×/g, 'x');
+            const m = str.match(/^(-?\d+(?:\.\d+)?)(?:\*10\^|x10\^|e)(-?\d+)$/);
+            if (m) {
+                const sign = m[1][0] === '-' ? '-' : '';
+                const mant = m[1].replace('-', '');
+                const exp = parseInt(m[2]);
+                const dot = mant.indexOf('.');
+                const intLen = dot === -1 ? mant.length : dot;
+                let D = mant.replace('.', '');
+                D = D.replace(/^0+/, '').replace(/0+$/, '');
+                if (D === '') D = '0';
+                const E = exp + intLen - D.length;
+                return JSON.stringify({ s: sign, d: D, e: E });
+            }
+            const dm = str.match(/^(-?)(\d+)(?:\.(\d+))?$/);
+            if (!dm) return '?' + str;
+            const sign = dm[1];
+            const int = dm[2], frac = dm[3] || '';
+            if (int !== '0' && int !== '') {
+                let D = (int + frac).replace(/0+$/, '');
+                if (D === '') D = '0';
+                return JSON.stringify({ s: sign, d: D, e: int.length - D.length });
+            }
+            let D = frac.replace(/^0+/, '');
+            if (D === '') return JSON.stringify({ s: sign, d: '0', e: 0 });
+            return JSON.stringify({ s: sign, d: D, e: -frac.length });
+        }
+
+
+        // --- CORE GAME LOGIC ---
+
+        function login() {
+            const sClass = document.getElementById('student-class').value.trim().toUpperCase();
+            const sNo = document.getElementById('student-no').value.trim();
+            const sName = document.getElementById('student-name').value.trim();
+
+            if (!sClass || !sNo || !sName) {
+                showToast("Please fill in all details to start.", "error");
+                return;
+            }
+
+            studentProfile = { class: sClass, no: sNo, name: sName };
+            document.getElementById('display-name').textContent = `Welcome, ${sName}`;
+            document.getElementById('display-class').textContent = sClass;
+            document.getElementById('display-no').textContent = sNo;
+
+            loadScores();
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            
+            updatePassportUI();
+            showToast(`Welcome aboard, ${sName}!`, "success");
+        }
+
+        function logout() {
+            studentProfile = null;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('student-class').value = '';
+            document.getElementById('student-no').value = '';
+            document.getElementById('student-name').value = '';
+        }
+
+        function selectFormatMode(mode) {
+            selectedFormat = mode;
+            document.querySelectorAll('.format-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`mode-${mode}`).classList.add('active');
+            
+            const descMap = {
+                'all': 'Will mix Multiple Choice & Conventional Fill-in questions automatically.',
+                'mc': 'All questions will be multiple choice.',
+                'fill': 'All questions will require you to type the answer.'
+            };
+            document.getElementById('mode-desc').textContent = descMap[mode];
+        }
+
+        function updatePassportUI() {
+            for (let i = 1; i <= 3; i++) {
+                const statusEl = document.getElementById(`badge-status-${i}`);
+                const iconEl = document.getElementById(`badge-icon-${i}`);
+                const cardEl = document.getElementById(`badge-card-${i}`);
+                
+                if (badgeRecords[`level${i}`]) {
+                    statusEl.textContent = "Completed ✅";
+                    statusEl.className = "text-sm font-semibold text-green-400";
+                    iconEl.textContent = "🏆";
+                    cardEl.classList.add('border-amber-500');
+                } else {
+                    statusEl.textContent = "Not Attempted";
+                    statusEl.className = "text-sm font-semibold text-slate-500";
+                    iconEl.textContent = "🔒";
+                    cardEl.classList.remove('border-amber-500');
+                }
+            }
+            updateScoreboardUI();
+        }
+
+        // --- SCORE BOARD LOGIC ---
+        function getScoreStorageKey() {
+            if (!studentProfile) return null;
+            return `hkdse_ind_sci_score_${studentProfile.class}_${studentProfile.no}_${studentProfile.name}`;
+        }
+
+        function loadScores() {
+            const key = getScoreStorageKey();
+            scoreTotals = { level1: 0, level2: 0, level3: 0 };
+            if (!key) return;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const saved = JSON.parse(raw);
+                    if (saved && typeof saved.level1 === 'number') scoreTotals = saved;
+                }
+            } catch (e) { console.log('loadScores error', e); }
+        }
+
+        function saveScores() {
+            const key = getScoreStorageKey();
+            if (!key) return;
+            try {
+                localStorage.setItem(key, JSON.stringify(scoreTotals));
+            } catch (e) { console.log('saveScores error', e); }
+        }
+
+        function updateScoreboardUI() {
+            document.getElementById('score-1').textContent = scoreTotals.level1;
+            document.getElementById('score-2').textContent = scoreTotals.level2;
+            document.getElementById('score-3').textContent = scoreTotals.level3;
+            document.getElementById('total-marks').textContent = scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3;
+        }
+
+        // Marks for the CURRENT attempt: full minus (hearts lost × per-heart)
+        function currentAttemptMarks() {
+            const cfg = MARKS[currentLevel];
+            if (!cfg) return 0;
+            const heartsLost = Math.max(0, 3 - lives);
+            return Math.max(0, cfg.full - heartsLost * cfg.perHeart);
+        }
+
+        function updateLiveScore() {
+            const el = document.getElementById('live-score');
+            if (el) el.textContent = currentAttemptMarks();
+        }
+
+        function resetBadges() {
+            if(confirm("Are you sure you want to reset your progress and marks?")) {
+                badgeRecords = { level1: false, level2: false, level3: false };
+                levelStats = { level1: { correct: 0, total: 0 }, level2: { correct: 0, total: 0 }, level3: { correct: 0, total: 0 } };
+                scoreTotals = { level1: 0, level2: 0, level3: 0 };
+                saveScores();
+                updatePassportUI();
+                showToast("Progress and marks reset.", "info");
+            }
+        }
+
+        function startGame(level) {
+            currentLevel = level;
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            const levelColors = ['text-green-400', 'text-amber-400', 'text-red-400'];
+            document.getElementById('level-indicator').className = `font-bold ${levelColors[level-1]}`;
+            document.getElementById('level-indicator').textContent = `Level ${level}`;
+
+            lives = 3;
+            currentQuestionIndex = 0;
+            currentQuestions = [];
+            currentSets = [];
+            currentSetIndex = 0;
+            activePart = null;
+            updateLiveScore();
+            
+            if (level === 3) {
+                // Level 3: 5 multi-part question sets; each set shown as (a)(b)(c) blocks on one page
+                const usedTexts = new Set();
+                const usedOpts = new Set();
+                const usedAns = new Set();
+                for (let i = 0; i < 5; i++) {
+                    let parts = null, tKey = null, oKey = null, aKey = null, tries = 0;
+                    do {
+                        parts = MathGen.generateL3Set();
+                        tKey = parts.map(p => p.displayTex).join('|');
+                        oKey = parts.map(p => [...p.options].sort().join('~')).join('|');
+                        aKey = parts.map(p => p.answerStr).join('|');
+                        tries++;
+                    } while ((usedTexts.has(tKey) || usedOpts.has(oKey) || usedAns.has(aKey)) && tries < 100);
+                    usedTexts.add(tKey);
+                    usedOpts.add(oKey);
+                    usedAns.add(aKey);
+                    parts.forEach((part, pi) => {
+                        part.setNo = i + 1;
+                        part.partIdx = pi;
+                        part.partLabel = ['(a)', '(b)', '(c)'][pi];
+                        part.paper = 'Paper 1';
+                        part.done = false;
+                        // one answer format per whole set for consistency
+                        part.mode = (selectedFormat === 'all') ? (Math.random() > 0.5 ? 'mc' : 'fill') : selectedFormat;
+                    });
+                    currentSets.push(parts);
+                }
+                updateLivesUI();
+                renderSet();
+                return;
+            }
+            
+            // Levels 1 & 2: 10 single questions (no duplicate questions, MC options or answers in a game)
+            const usedTexts = new Set();
+            const usedOpts = new Set();
+            const usedAns = new Set();
+            for(let i=0; i<10; i++) {
+                let q = null, tKey = null, oKey = null, aKey = null, tries = 0;
+                do {
+                    q = (level === 1) ? MathGen.generateL1() : MathGen.generateL2();
+                    tKey = q.text;
+                    oKey = [...q.options].sort().join('~');
+                    aKey = q.answerStr;
+                    tries++;
+                } while ((usedTexts.has(tKey) || usedOpts.has(oKey) || usedAns.has(aKey)) && tries < 300);
+                usedTexts.add(tKey);
+                usedOpts.add(oKey);
+                usedAns.add(aKey);
+                currentQuestions.push(q);
+            }
+            
+            updateLivesUI();
+            renderQuestion();
+        }
+
+        function updateLivesUI() {
+            const container = document.getElementById('lives-container');
+            container.innerHTML = '';
+            for (let i = 0; i < lives; i++) {
+                container.innerHTML += '<span class="heart-bounce">❤️</span>';
+            }
+            for (let i = lives; i < 3; i++) {
+                container.innerHTML += '<span class="opacity-30 grayscale">❤️</span>';
+            }
+        }
+
+        function renderQuestion() {
+            document.getElementById('q-counter').textContent = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
+            const q = currentQuestions[currentQuestionIndex];
+            
+            // Ensure single-question UI is visible and L3 area hidden
+            document.getElementById('l3-area').classList.add('hidden');
+            document.getElementById('question-display').classList.remove('hidden');
+            
+            const displayEl = document.getElementById('question-display');
+            displayEl.innerHTML = q.text;
+            
+            document.getElementById('question-instruction').textContent = q.instruction;
+            document.getElementById('paper-hint').textContent = 
+                (q.paper === 'Paper 1') ? 'DSE Paper 1 Style · Long Question' : 'DSE Paper 2 Style · MCQ';
+            
+            const partLabelEl = document.getElementById('part-label');
+            partLabelEl.textContent = '';
+            partLabelEl.classList.add('hidden');
+            
+            // Determine Mode for this specific question
+            if (selectedFormat === 'all') {
+                currentQuestionMode = Math.random() > 0.5 ? 'mc' : 'fill';
+            } else {
+                currentQuestionMode = selectedFormat;
+            }
+
+            const mcArea = document.getElementById('mc-options');
+            const fillArea = document.getElementById('conventional-area');
+            const hint = document.getElementById('format-hint');
+
+            if (currentQuestionMode === 'mc') {
+                mcArea.classList.remove('hidden');
+                fillArea.classList.add('hidden');
+                hint.textContent = "Multiple Choice Mode";
+                
+                const btns = mcArea.querySelectorAll('button');
+                btns.forEach((btn, idx) => {
+                    btn.innerHTML = q.options[idx];
+                });
+            } else {
+                mcArea.classList.add('hidden');
+                fillArea.classList.remove('hidden');
+                hint.textContent = "Fill-in Mode";
+                
+                document.getElementById('conventional-input').value = '';
+                document.getElementById('math-preview').innerHTML = '\\( \\text{Empty} \\)';
+                
+                // Inject helper buttons based on variables
+                const helperBox = document.getElementById('helper-buttons');
+                helperBox.innerHTML = '';
+                q.variables.forEach(v => {
+                    helperBox.innerHTML += `<button onclick="insertAtCursor('${v}')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-amber-200 font-mono text-sm transition">${v}</button>`;
+                });
+                helperBox.innerHTML += `<button onclick="insertAtCursor('^')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">^</button>`;
+                helperBox.innerHTML += `<button onclick="insertAtCursor('/')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">/</button>`;
+                helperBox.innerHTML += `<button onclick="insertAtCursor('*10^')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">*10^</button>`;
+                helperBox.innerHTML += `<button onclick="insertAtCursor('.')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">.</button>`;
+                helperBox.innerHTML += `<button onclick="insertAtCursor('-')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">-</button>`;
+            }
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // --- Level 3: render the whole question set as (a)(b)(c) blocks on one page ---
+        function renderSet() {
+            const set = currentSets[currentSetIndex];
+            document.getElementById('q-counter').textContent = `Set ${currentSetIndex + 1}/${currentSets.length}`;
+            document.getElementById('question-instruction').textContent = "Simplify the expressions — answer all parts:";
+            document.getElementById('paper-hint').textContent = 'DSE Paper 1 Style · Multi-part Question';
+            document.getElementById('format-hint').textContent = set[0].mode === 'mc' ? 'Multiple Choice Mode' : 'Fill-in Mode';
+            
+            const partLabelEl = document.getElementById('part-label');
+            partLabelEl.textContent = '';
+            partLabelEl.classList.add('hidden');
+            
+            // Hide single-question UI, show L3 area
+            document.getElementById('question-display').classList.add('hidden');
+            document.getElementById('mc-options').classList.add('hidden');
+            document.getElementById('conventional-area').classList.add('hidden');
+            const l3Area = document.getElementById('l3-area');
+            l3Area.classList.remove('hidden');
+            
+            const blocksEl = document.getElementById('l3-blocks');
+            blocksEl.innerHTML = '';
+            
+            set.forEach((part, pi) => {
+                const block = document.createElement('div');
+                block.id = `l3-block-${pi}`;
+                block.className = `bg-slate-800/60 border ${part.done ? 'border-green-500/70' : 'border-slate-700'} rounded-2xl p-4 transition-all duration-300`;
+                blocksEl.appendChild(block);
+                rebuildL3Block(pi);
+            });
+            
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function insertL3Char(pi, ch) {
+            const f = document.getElementById(`l3-input-${pi}`);
+            const start = f.selectionStart ?? f.value.length;
+            const end = f.selectionEnd ?? f.value.length;
+            f.value = f.value.substring(0, start) + ch + f.value.substring(end, f.value.length);
+            const pos = start + ch.length;
+            f.setSelectionRange(pos, pos);
+            f.focus();
+            updateL3Preview(pi);
+        }
+
+        function updateL3Preview(pi) {
+            const input = document.getElementById(`l3-input-${pi}`).value;
+            const previewBox = document.getElementById(`l3-preview-${pi}`);
+            if (!previewBox) return;
+            if (!input.trim()) {
+                previewBox.innerHTML = '\\( \\text{Empty} \\)';
+                if (window.MathJax) MathJax.typesetPromise([previewBox]);
+                return;
+            }
+            let texStr = input;
+            if (texStr.includes('/')) {
+                const parts = texStr.split('/');
+                if (parts.length === 2) texStr = `\\frac{${parts[0]}}{${parts[1]}}`;
+            }
+            texStr = texStr.replace(/\*10\^|x10\^/g, '\\times 10^');
+            texStr = texStr.replace(/\^\(([^()]*)\)/g, '^{$1}');
+            texStr = texStr.replace(/\^(-?\d+|[a-z])/g, '^{$1}');
+            previewBox.innerHTML = `$ ${texStr} $`;
+            if (window.MathJax) MathJax.typesetPromise([previewBox]).catch(() => {});
+        }
+
+        function submitSetPartMC(pi, btnIdx) {
+            const set = currentSets[currentSetIndex];
+            const part = set[pi];
+            if (part.done) return;
+            activePart = part;
+            const isCorrect = (part.options[btnIdx] === `$ ${part.mcAnswerStr} $`);
+            processSetAnswer(pi, isCorrect);
+        }
+
+        function submitSetPartFill(pi) {
+            const set = currentSets[currentSetIndex];
+            const part = set[pi];
+            if (part.done) return;
+            activePart = part;
+            
+            const rawInput = document.getElementById(`l3-input-${pi}`).value;
+            if (!rawInput.trim()) {
+                showToast("Please enter an answer.", "info");
+                return;
+            }
+            const cleanInput = rawInput.toLowerCase().replace(/\s+/g, '');
+            const isCorrect = checkFillAnswer(cleanInput, part);
+            processSetAnswer(pi, isCorrect);
+        }
+
+        function rebuildL3Block(pi) {
+            const part = currentSets[currentSetIndex][pi];
+            const block = document.getElementById(`l3-block-${pi}`);
+            if (!block) return;
+            let inner = '';
+            inner += `<div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-bold text-emerald-400">Part ${part.partLabel}</span>
+                <span id="l3-status-${pi}" class="${part.done ? 'text-green-400' : 'text-slate-400'} text-sm font-semibold">${part.done ? '✓ Correct' : ''}</span>
+            </div>`;
+            inner += `<div id="l3-q-${pi}" class="text-xl sm:text-2xl text-white mb-3 text-center overflow-x-auto min-h-[40px] flex items-center justify-center">$ \\text{Simplify } ${part.displayTex} $</div>`;
+            if (part.done) {
+                inner += `<div class="text-center text-green-400 text-sm py-2 font-semibold">Answer: $ ${part.mcAnswerStr} $</div>`;
+            } else if (part.mode === 'mc') {
+                inner += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="l3-mc-${pi}">`;
+                part.options.forEach((o, bi) => {
+                    inner += `<button onclick="submitSetPartMC(${pi}, ${bi})" class="option-btn bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl p-3 text-lg transition-all shadow-md active:scale-95 min-h-[56px] flex items-center justify-center">${o}</button>`;
+                });
+                inner += `</div>`;
+            } else {
+                inner += `
+                <div class="flex gap-2 w-full">
+                    <input type="text" id="l3-input-${pi}" placeholder="e.g. x^7/y^4" oninput="updateL3Preview(${pi})" onkeypress="if(event.key==='Enter')submitSetPartFill(${pi})" class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-lg font-mono text-white outline-none focus:border-amber-500 transition shadow-inner">
+                    <button onclick="submitSetPartFill(${pi})" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 rounded-lg text-base transition shadow-md active:scale-95">Submit</button>
+                </div>
+                <div id="l3-helpers-${pi}" class="flex flex-wrap gap-2 justify-center w-full mt-2">`;
+                part.variables.forEach(v => {
+                    inner += `<button onclick="insertL3Char(${pi},'${v}')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-amber-200 font-mono text-sm transition">${v}</button>`;
+                });
+                ['^','/','*10^','.','-'].forEach(op => {
+                    inner += `<button onclick="insertL3Char(${pi},'${op}')" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white font-mono text-sm transition">${op}</button>`;
+                });
+                inner += `</div>
+                <div class="w-full p-3 bg-slate-900/60 border border-slate-700 rounded-lg text-center mt-2">
+                    <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">Live Math Preview</span>
+                    <div id="l3-preview-${pi}" class="text-lg text-slate-300 min-h-[28px] flex items-center justify-center">\\( \\text{Empty} \\)</div>
+                </div>`;
+            }
+            block.innerHTML = inner;
+            block.classList.remove('border-slate-700');
+            block.classList.add(part.done ? 'border-green-500/70' : 'border-slate-700');
+            if (window.MathJax) MathJax.typesetPromise([block]);
+        }
+
+        function processSetAnswer(pi, isCorrect) {
+            levelStats[`level${currentLevel}`].total++;
+            
+            if (isCorrect) {
+                levelStats[`level${currentLevel}`].correct++;
+                showToast(`Part ${currentSets[currentSetIndex][pi].partLabel} correct! Awesome job.`, "success");
+                
+                const set = currentSets[currentSetIndex];
+                set[pi].done = true;
+                rebuildL3Block(pi);
+                
+                if (set.every(p => p.done)) {
+                    setTimeout(() => {
+                        currentSetIndex++;
+                        if (currentSetIndex >= currentSets.length) {
+                            winGame();
+                        } else {
+                            renderSet();
+                        }
+                    }, 700);
+                }
+            } else {
+                showWrongReflectionModal();
+            }
+        }
+
+        function insertAtCursor(myValue) {
+            const myField = document.getElementById('conventional-input');
+            if (document.selection) {
+                myField.focus();
+                sel = document.selection.createRange();
+                sel.text = myValue;
+            } else if (myField.selectionStart || myField.selectionStart == '0') {
+                var startPos = myField.selectionStart;
+                var endPos = myField.selectionEnd;
+                myField.value = myField.value.substring(0, startPos) + myValue + myField.value.substring(endPos, myField.value.length);
+                myField.selectionStart = startPos + myValue.length;
+                myField.selectionEnd = startPos + myValue.length;
+            } else {
+                myField.value += myValue;
+            }
+            myField.focus();
+            updateLivePreview();
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') submitFillAnswer();
+        }
+
+        function submitMCAnswer(btnIndex) {
+            const q = currentQuestions[currentQuestionIndex];
+            const selectedText = q.options[btnIndex];
+            const isCorrect = (selectedText === `$ ${q.mcAnswerStr} $`);
+            processAnswer(isCorrect);
+        }
+
+        // Index / scientific-notation answer checking.
+        function checkFillAnswer(cleanInput, q) {
+            if (q.answerType === 'sci') {
+                return canonSci(cleanInput) === canonSci(q.answerStr);
+            }
+            return canonNum(cleanInput) === canonNum(q.answerStr);
+        }
+
+        function submitFillAnswer() {
+            const q = currentQuestions[currentQuestionIndex];
+            const rawInput = document.getElementById('conventional-input').value;
+            
+            if(!rawInput.trim()) {
+                showToast("Please enter an answer.", "info");
+                return;
+            }
+
+            const cleanInput = rawInput.toLowerCase().replace(/\s+/g, '').replace(/\*/g, '');
+            const isCorrect = checkFillAnswer(cleanInput, q);
+            processAnswer(isCorrect);
+        }
+
+        function processAnswer(isCorrect) {
+            // Track total attempts for the current level
+            levelStats[`level${currentLevel}`].total++;
+            
+            if (isCorrect) {
+                // Track correct attempts
+                levelStats[`level${currentLevel}`].correct++;
+                showToast("Correct! Awesome job.", "success");
+                currentQuestionIndex++;
+                
+                if (currentQuestionIndex >= currentQuestions.length) {
+                    winGame();
+                } else {
+                    renderQuestion();
+                }
+            } else {
+                // Instantly pop up the wrong reflection modal before deducting life
+                showWrongReflectionModal();
+            }
+        }
+
+        function showWrongReflectionModal() {
+            const modal = document.getElementById('wrong-reflection-modal');
+            modal.classList.remove('hidden');
+            if(window.MathJax) MathJax.typesetPromise([modal]);
+        }
+
+        function submitWrongReflection(selectedLaw) {
+            const q = (currentLevel === 3) ? activePart : currentQuestions[currentQuestionIndex];
+            const actualLaw = q.firstStepLaw;
+
+            let isLawCorrect = (selectedLaw === actualLaw);
+            if (actualLaw === 'use_a' && selectedLaw !== '') isLawCorrect = true;
+
+            document.getElementById('wrong-reflection-modal').classList.add('hidden');
+
+            if (isLawCorrect) {
+                showToast("Good reflection! You identified the correct technique to start with.", "success");
+            } else {
+                showToast("Not quite! Remember to check the Formula sheet or ask AI Tutor.", "error");
+            }
+
+            // Deduct life and shake the game screen to indicate a mistake
+            lives--;
+            updateLivesUI();
+            updateLiveScore();
+            showWrongFeedback();
+            
+            const gameArea = document.getElementById('main-game-area');
+            gameArea.classList.add('shake');
+            setTimeout(() => gameArea.classList.remove('shake'), 400);
+
+            if (lives <= 0) {
+                setTimeout(() => {
+                    showToast("Mission Failed. Out of lives!", "error");
+                    quitGame();
+                }, 500);
+            }
+        }
+
+        function winGame() {
+            badgeRecords[`level${currentLevel}`] = true;
+            const earned = currentAttemptMarks();
+            scoreTotals[`level${currentLevel}`] += earned;
+            saveScores();
+            showToast(`Level ${currentLevel} Complete! +${earned} marks earned! 🏆`, "success");
+            quitGame();
+        }
+
+        function quitGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            updatePassportUI();
+        }
+
+        // Live Math Preview for Fill-in Mode
+        function updateLivePreview() {
+            const input = document.getElementById('conventional-input').value;
+            const previewBox = document.getElementById('math-preview');
+            
+            if(!input.trim()) {
+                previewBox.innerHTML = '\\( \\text{Empty} \\)';
+                if(window.MathJax) MathJax.typesetPromise([previewBox]);
+                return;
+            }
+
+            let texStr = input;
+            
+            // Simple parsing: a/b -> \frac{a}{b}
+            if(texStr.includes('/')) {
+                const parts = texStr.split('/');
+                if(parts.length === 2) {
+                    texStr = `\\frac{${parts[0]}}{${parts[1]}}`;
+                }
+            }
+            
+            // Reformat *10^ -> \times 10^ and x^2 -> x^{2}
+            texStr = texStr.replace(/\*10\^|x10\^/g, '\\times 10^');
+            texStr = texStr.replace(/\^\(([^()]*)\)/g, '^{$1}');
+            texStr = texStr.replace(/\^(-?\d+|[a-z])/g, '^{$1}');
+            
+            previewBox.innerHTML = `$ ${texStr} $`;
+            if (window.MathJax) {
+                MathJax.typesetPromise([previewBox]).catch(err => console.log('MathJax Error:', err));
+            }
+        }
+
+        // --- HELPER UI FUNCTIONS ---
+
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        function showWrongFeedback() {
+            const el = document.getElementById('feedback-toast');
+            el.classList.remove('hidden');
+            setTimeout(() => {
+                el.classList.add('hidden');
+            }, 3000);
+        }
+
+        function toggleCheatSheet() {
+            const modal = document.getElementById('cheat-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function closeAITutor() {
+            document.getElementById('ai-tutor-modal').classList.add('hidden');
+        }
+
+        function askAITutor() {
+            let q;
+            if (currentLevel === 3) {
+                q = activePart;
+                if (!q) {
+                    q = currentSets[currentSetIndex].find(p => !p.done) || currentSets[currentSetIndex][0];
+                }
+            } else {
+                q = currentQuestions[currentQuestionIndex];
+            }
+            let hint = "";
+            switch (q.firstStepLaw) {
+                case 'multiply':
+                    hint = "Use $a^m \\cdot a^n = a^{m+n}$: when multiplying powers with the SAME base, ADD the indices.";
+                    break;
+                case 'divide':
+                    hint = "Use $\\frac{a^m}{a^n} = a^{m-n}$: when dividing powers with the SAME base, SUBTRACT the indices (top minus bottom).";
+                    break;
+                case 'power':
+                    hint = "Use $(a^m)^n = a^{mn}$: multiply the outside index by every index inside the bracket. Don't forget the coefficient is also raised to the power!";
+                    break;
+                case 'negative':
+                    hint = "Negative index means reciprocal: $a^{-n} = \\frac{1}{a^n}$. Move negative-index terms across the fraction bar to make them positive.";
+                    break;
+                case 'base_convert':
+                    hint = "Convert everything to the SAME base first (e.g. $4 = 2^2$, $9 = 3^2$, $27 = 3^3$), then combine the indices.";
+                    break;
+                case 'sci_notation':
+                    hint = "Scientific notation: $N = a \\times 10^n$ with $1 \\le a < 10$. Count how many places the decimal point moves — left is positive $n$, right is negative $n$. For $\\times$ and $\\div$: multiply/divide the numbers and add/subtract the powers of 10.";
+                    break;
+                case 'use_a':
+                    hint = "This is part (b)! Simplify using the same steps as part (a) — the laws are identical, only the numbers change.";
+                    break;
+                default:
+                    hint = "Remember the basics: $a^m a^n = a^{m+n}$ and $a^{-n} = \\frac{1}{a^n}$.";
+            }
+
+            document.getElementById('ai-content-area').innerHTML = `
+                <div class="bg-slate-800/80 p-5 rounded-lg border border-purple-500/30 mb-4 shadow-inner">
+                    <p class="text-purple-300 font-semibold mb-2 text-lg">🤖 AI Hint specifically for this question:</p>
+                    <p class="text-white text-base">${hint}</p>
+                </div>
+                <div class="bg-slate-800/80 p-5 rounded-lg border border-slate-600 shadow-inner">
+                    <p class="text-amber-400 font-semibold mb-2 text-lg">💡 General Checklist:</p>
+                    <ul class="list-disc list-inside space-y-2 text-slate-300">
+                        <li>Are the bases the SAME before you add/subtract indices? Convert first if not!</li>
+                        <li>Apply the outside power to EVERY factor inside the bracket (including the coefficient).</li>
+                        <li>Final answer must use POSITIVE indices — move negatives across the fraction bar.</li>
+                        <li>Scientific notation: mantissa must be $1 \le a < 10$ — count the decimal places carefully!</li>
+                    </ul>
+                </div>
+            `;
+            document.getElementById('ai-tutor-modal').classList.remove('hidden');
+            if(window.MathJax) MathJax.typesetPromise();
+        }
+
+        // --- REFLECTION & SUBMISSION LOGIC ---
+
+        function submitToTeacher() {
+            if (!studentProfile) return;
+            
+            const btn = document.getElementById('btn-submit-teacher');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Sending... ⏳';
+            btn.disabled = true;
+
+            const getPercent = (lvl) => {
+                const s = levelStats[lvl];
+                return s.total > 0 ? Math.round((s.correct / s.total) * 100) + "%" : "N/A";
+            };
+
+            const payload = {
+                timestamp: new Date().toISOString(),
+                topic: 'Indices & Scientific Notation',
+                class: studentProfile.class,
+                no: studentProfile.no,
+                name: studentProfile.name,
+                level1: badgeRecords.level1,
+                level1Percent: getPercent('level1'),
+                level1Marks: scoreTotals.level1,
+                level2: badgeRecords.level2,
+                level2Percent: getPercent('level2'),
+                level2Marks: scoreTotals.level2,
+                level3: badgeRecords.level3,
+                level3Percent: getPercent('level3'),
+                level3Marks: scoreTotals.level3,
+                totalMarks: scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3
+            };
+
+            // Send as text/plain (simple request, no CORS preflight) so we can read the
+            // Apps Script JSON response and confirm the row was actually written.
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=UTF-8',
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data && data.status === 'success') {
+                    showToast("Data submitted to teacher successfully!", "success");
+                } else {
+                    showToast("Server replied but data not saved: " + (data && data.message ? data.message : 'unknown error'), "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Submission failed. Check your internet / Apps Script deployment.", "error");
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
