@@ -434,14 +434,23 @@
             pexp: (e) => e === 0 ? '' : (e > 0 ? `^{${e}}` : `^{-${-e}}`),
             // letter factor for TeX: x, x^{5}, x^{-3}
             lfac: (v, e) => e === 0 ? '' : `${v}${e > 0 ? (e === 1 ? '' : `^{${e}}`) : `^{-${-e}}`}`,
-            // answer string with positive indices: {x:7, y:-4} -> "x^7/y^4"
+            // answer string with positive indices: {x:7, y:-4} -> "x^7/y^4"; {x:10, y:10} -> "(xy)^10"
             monStr: function(map) {
-                const letters = Object.keys(map).sort();
-                let num = '', den = '';
-                letters.forEach(l => {
+                const byE = {};
+                Object.keys(map).sort().forEach(l => {
                     const e = map[l];
-                    if (e > 0) num += e === 1 ? l : `${l}^${e}`;
-                    else if (e < 0) den += e === -1 ? l : `${l}^${-e}`;
+                    if (e === 0) return;
+                    (byE[e] = byE[e] || []).push(l);
+                });
+                const expList = Object.keys(byE).map(Number).sort((a, b) => byE[a][0].localeCompare(byE[b][0]));
+                let num = '', den = '';
+                expList.forEach(e => {
+                    const ls = byE[e];
+                    const ae = Math.abs(e);
+                    const chunk = ls.length === 1
+                        ? (ae === 1 ? ls[0] : `${ls[0]}^${ae}`)
+                        : (ae === 1 ? `(${ls.join('')})` : `(${ls.join('')})^${ae}`);
+                    if (e > 0) num += chunk; else den += chunk;
                 });
                 if (num === '' && den === '') return '1';
                 if (den === '') return num;
@@ -450,12 +459,21 @@
             },
             // TeX version of monStr
             monTex: function(map) {
-                const letters = Object.keys(map).sort();
-                let num = '', den = '';
-                letters.forEach(l => {
+                const byE = {};
+                Object.keys(map).sort().forEach(l => {
                     const e = map[l];
-                    if (e > 0) num += e === 1 ? l : `${l}^{${e}}`;
-                    else if (e < 0) den += e === -1 ? l : `${l}^{${-e}}`;
+                    if (e === 0) return;
+                    (byE[e] = byE[e] || []).push(l);
+                });
+                const expList = Object.keys(byE).map(Number).sort((a, b) => byE[a][0].localeCompare(byE[b][0]));
+                let num = '', den = '';
+                expList.forEach(e => {
+                    const ls = byE[e];
+                    const ae = Math.abs(e);
+                    const chunk = ls.length === 1
+                        ? (ae === 1 ? ls[0] : `${ls[0]}^{${ae}}`)
+                        : (ae === 1 ? `(${ls.join('')})` : `(${ls.join('')})^{${ae}}`);
+                    if (e > 0) num += chunk; else den += chunk;
                 });
                 if (num === '' && den === '') return '1';
                 if (den === '') return num;
@@ -511,7 +529,7 @@
                 const type = this.rand(0, 12);
                 const v = ["x", "y", "m", "n", "a"][this.rand(0, 4)];
                 let qText = "", ansStr = "", ansTex = "", opts = [], law = 'power';
-                const instruction = "Simplify the expression:";
+                const instruction = "Simplify the expression and express your answer with positive indices:";
 
                 if (type === 0) {
                     // Q492: (3a)^2 · a^3   (c·v)^p · v^q
@@ -558,36 +576,39 @@
                     opts = [ansTex, `\\frac{${coefA * coefA}}{${coefB}${v}^{${exp}}}`, `${coef}${v}^{${exp + 1}}`, `${coef}${v}^{${2 * p + q}}`];
                     law = 'power';
                 } else if (type === 5) {
-                    // Q502: 6x^8 / (3x^5)^2  — only pairs where 2q - p >= 2 (variable ends in numerator, exponent >= 2)
+                    // Q502: 6x^8 / (3x^5)^2 = 2/(3x^2)  — pairs where 2q - p >= 2 (variable ends in denominator, exponent >= 2)
                     const pairs = [[4, 2, 5, 4], [4, 2, 7, 5], [8, 4, 7, 5], [12, 4, 5, 4], [18, 6, 5, 4], [16, 4, 7, 5], [20, 5, 6, 4], [6, 3, 5, 4], [18, 6, 7, 5], [16, 4, 9, 6], [12, 4, 7, 5], [8, 4, 9, 6]];
                     const [coefA, coefB, p, q] = pairs[this.rand(0, pairs.length - 1)];
                     const j = 2 * q - p;             // always >= 2 by pair selection
                     const g = this.gcd(coefA, coefB * coefB);
                     const nd = coefA / g, dd = (coefB * coefB) / g;
                     const vT = `${v}^{${j}}`;
-                    const vStr = `${v}^${j}`;
-                    const numPart = nd === 1 ? vT : `${nd}${vT}`;
-                    const numStr = nd === 1 ? vStr : `${nd}${vStr}`;
-                    ansStr = dd === 1 ? numStr : `${numStr}/${dd}`;
-                    ansTex = dd === 1 ? numPart : `\\frac{${numPart}}{${dd}}`;
+                    const denT = dd === 1 ? vT : `${dd}${vT}`;
+                    const denStr = dd === 1 ? `${v}^${j}` : `${dd}${v}^${j}`;
+                    ansStr = nd === 1 ? `1/${denStr}` : `${nd}/${denStr}`;
+                    ansTex = nd === 1 ? `\\frac{1}{${denT}}` : `\\frac{${nd}}{${denT}}`;
                     qText = `\\text{Simplify } \\frac{${coefA}${v}^{${p}}}{(${coefB}${v}^{${q}})^{2}}`;
-                    const optNum = (coef, exp, den) => {
-                        const np = coef === 1 ? `${v}^{${exp}}` : `${coef}${v}^{${exp}}`;
-                        return den === 1 ? np : `\\frac{${np}}{${den}}`;
-                    };
-                    opts = [ansTex, optNum(nd, j + 1, dd), optNum(nd, j + 2, dd), optNum(nd * 2, j, dd)];
+                    // distractors: sign flip, exponent +/- 1
+                    const numPart = nd === 1 ? vT : `${nd}${vT}`;
+                    const signFlip = dd === 1 ? numPart : `\\frac{${numPart}}{${dd}}`;
+                    const e1 = j - 1, e2 = j + 1;
+                    const vT1 = e1 === 1 ? `${v}` : `${v}^{${e1}}`;
+                    const vT2 = `${v}^{${e2}}`;
+                    const denT1 = dd === 1 ? vT1 : `${dd}${vT1}`;
+                    const denT2 = dd === 1 ? vT2 : `${dd}${vT2}`;
+                    opts = [ansTex, signFlip, nd === 1 ? `\\frac{1}{${denT1}}` : `\\frac{${nd}}{${denT1}}`, nd === 1 ? `\\frac{1}{${denT2}}` : `\\frac{${nd}}{${denT2}}`];
                     law = 'divide';
                 } else if (type === 6) {
                     // Q500: 8^(2v+1) / 4^(3v+1)
                     ansStr = `2`; ansTex = `2`;
                     qText = `\\text{Simplify } \\frac{8^{2${v}+1}}{4^{3${v}+1}}`;
-                    opts = [`2`, `2^{${v}}`, `2^{-${v}}`, `1`];
+                    opts = [`2`, `2^{${v}}`, `2^{2${v}}`, `1`];
                     law = 'base_convert';
                 } else if (type === 7) {
-                    // Q503: (2^n · 8^n) / 64^n
-                    ansStr = `4^-${v}`; ansTex = `4^{-${v}}`;
+                    // Q503: (2^n · 8^n) / 64^n  →  (16/64)^v = 4^-v = 1/4^v (answer with positive indices)
+                    ansStr = `1/4^${v}`; ansTex = `\\frac{1}{4^{${v}}}`;
                     qText = `\\text{Simplify } \\frac{2^{${v}} \\cdot 8^{${v}}}{64^{${v}}}`;
-                    opts = [ansTex, `4^{${v}}`, `4^{2${v}}`, `4^{-3${v}}`];
+                    opts = [ansTex, `4^{${v}}`, `4^{2${v}}`, `\\frac{1}{4^{3${v}}}`];
                     law = 'base_convert';
                 } else if (type === 8) {
                     // Q504: 81^(2v+3) / (27^(v+1))^2
@@ -610,11 +631,12 @@
                     opts = [ansTex, `10^{${a + b}}`, `40^{${b}}`, `10^{${b * 2}}`];
                     law = 'base_convert';
                 } else {
-                    // Q506: (2v)^3 / (4v^-5)^-1
+                    // Q506: (cv)^3 / (4v^-5)^-1 = 4c^3/v^2
                     const c = this.rand(2, 3);
-                    ansStr = `32/${v}^2`; ansTex = `\\frac{32}{${v}^{2}}`;
+                    const coef = 4 * c * c * c;
+                    ansStr = `${coef}/${v}^2`; ansTex = `\\frac{${coef}}{${v}^{2}}`;
                     qText = `\\text{Simplify } \\frac{(${c}${v})^{3}}{(4${v}^{-5})^{-1}}`;
-                    opts = [ansTex, `\\frac{2}{${v}^{2}}`, `\\frac{8}{${v}^{2}}`, `\\frac{32}{${v}^{8}}`];
+                    opts = [ansTex, `\\frac{${c * c * c}}{${v}^{2}}`, `\\frac{${coef}}{${v}^{8}}`, `\\frac{${4 * c * c}}{${v}^{2}}`];
                     law = 'negative';
                 }
 
@@ -897,6 +919,11 @@
             let str = String(s).toLowerCase().replace(/\s+/g, '');
             if (!str) return '?';
             str = str.replace(/\(\)/g, '');                         // empty parens
+            // expand letter-products under a power: (xy)^10 -> x^10y^10
+            let guard = 0;
+            while (guard++ < 20 && /\([a-z]+\)\^\(?-?\d+\)?/.test(str)) {
+                str = str.replace(/\(([a-z]+)\)\^\(?(-?\d+)\)?/g, (mm, ls, e) => ls.split('').map(l => `${l}^${e}`).join(''));
+            }
             // strip parens unless they enclose an exponent after ^
             while (/\^\([^()]*\)/.test(str)) str = str.replace(/\^\(([^()]*)\)/g, '^$1');
             str = str.replace(/[()]/g, '');
@@ -1356,6 +1383,9 @@
                 return;
             }
             const cleanInput = rawInput.toLowerCase().replace(/\s+/g, '');
+            if (/\^\(?-/.test(cleanInput.replace(/\*/g, ''))) {
+                showToast("Express your answer with positive indices (e.g. 1/x^2, not x^-2).", "info");
+            }
             const isCorrect = checkFillAnswer(cleanInput, part);
             processSetAnswer(pi, isCorrect);
         }
@@ -1464,7 +1494,10 @@
             if (q.answerType === 'sci') {
                 return canonSci(cleanInput) === canonSci(q.answerStr);
             }
-            return canonNum(cleanInput.replace(/\*/g, '')) === canonNum(q.answerStr);
+            const noStar = cleanInput.replace(/\*/g, '');
+            // answers must be expressed with positive indices: reject x^-2 / 4^-v forms
+            if (/\^\(?-/.test(noStar)) return false;
+            return canonNum(noStar) === canonNum(q.answerStr);
         }
 
         function submitFillAnswer() {
@@ -1477,6 +1510,9 @@
             }
 
             const cleanInput = rawInput.toLowerCase().replace(/\s+/g, '');
+            if (q.answerType !== 'sci' && /\^\(?-/.test(cleanInput.replace(/\*/g, ''))) {
+                showToast("Express your answer with positive indices (e.g. 1/x^2, not x^-2).", "info");
+            }
             const isCorrect = checkFillAnswer(cleanInput, q);
             processAnswer(isCorrect);
         }
