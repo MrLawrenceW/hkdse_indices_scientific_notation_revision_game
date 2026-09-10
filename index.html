@@ -623,12 +623,12 @@
                     opts = [ansTex, `6^{${v}+2}`, `6^{4${v}+8}`, `12^{2${v}+4}`];
                     law = 'base_convert';
                 } else if (type === 10) {
-                    // Q498: 8^a · 5^(3a)
-                    let a = this.rand(2, 4);
+                    // Q498 (HKDSE 2015 P2 Q2): 8^222 · 5^666 = 10^666 — large indices per paper
+                    const a = [111, 222, 333][this.rand(0, 2)];
                     const b = a * 3;
                     ansStr = `10^${b}`; ansTex = `10^{${b}}`;
                     qText = `\\text{Simplify } 8^{${a}} \\cdot 5^{${b}}`;
-                    opts = [ansTex, `10^{${a + b}}`, `40^{${b}}`, `10^{${b * 2}}`];
+                    opts = [ansTex, `10^{${a + b}}`, `40^{${b}}`, `40^{${a + b}}`];
                     law = 'base_convert';
                 } else {
                     // Q506: (cv)^3 / (4v^-5)^-1 = 4c^3/v^2
@@ -861,7 +861,7 @@
         // parse one side of a fraction (product of factors, no '/')
         function parseNumSide(t) {
             const letters = {}, bases = {};   // bases: "16" -> poly
-            const coef = [1, 1];
+            const coef = [1, 1, 0];           // [num, den, log10 component]
             t = t.toLowerCase().replace(/\s+/g, '');
             if (!t || t === '1') return { coef, letters, bases };
             // split on '*' into factors (e.g. 8^x*2^x)
@@ -871,6 +871,7 @@
                 const parsed = parseSingleFactor(factor);
                 coef[0] *= parsed.coef[0];
                 coef[1] *= parsed.coef[1];
+                coef[2] = (coef[2] || 0) + (parsed.coef[2] || 0);
                 Object.keys(parsed.letters).forEach(l => { letters[l] = (letters[l] || 0) + parsed.letters[l]; });
                 Object.keys(parsed.bases).forEach(b => {
                     if (!bases[b]) bases[b] = { coef: {}, cst: 0 };
@@ -884,7 +885,7 @@
 
         function parseSingleFactor(t) {
             const letters = {}, bases = {};
-            const coef = [1, 1];
+            const coef = [1, 1, 0];           // [num, den, log10 component]
             if (!t || t === '1') return { coef, letters, bases };
             // fraction-like factor inside? not expected; reject up to safe:
             let i = 0, firstNum = '';
@@ -896,8 +897,14 @@
                     const expStr = m ? m[1] : rest.slice(1);
                     if (/^[+-]?\d+$/.test(expStr)) {
                         const e = parseInt(expStr);
-                        if (e >= 0) coef[0] = Math.pow(parseInt(firstNum), e);
-                        else coef[1] = Math.pow(parseInt(firstNum), -e);
+                        const pw = Math.pow(parseInt(firstNum), Math.abs(e));
+                        if (Number.isFinite(pw) && Number.isSafeInteger(pw)) {
+                            if (e >= 0) coef[0] = pw;
+                            else coef[1] = pw;
+                        } else {
+                            // overflow: compare via log10 (e.g. 10^666 = Infinity in JS floats)
+                            coef[2] = (coef[2] || 0) + e * Math.log10(parseInt(firstNum));
+                        }
                     } else {
                         bases[firstNum] = parsePoly(expStr);
                     }
@@ -930,8 +937,10 @@
             const parts = str.split('/');
             if (parts.length > 2) return '?' + str;
             const num = parseNumSide(parts[0] || '1');
-            const den = parts.length > 1 ? parseNumSide(parts[1]) : { coef: [1, 1], letters: {}, bases: {} };
+            const den = parts.length > 1 ? parseNumSide(parts[1]) : { coef: [1, 1, 0], letters: {}, bases: {} };
             let n = num.coef[0] * den.coef[1], d = num.coef[1] * den.coef[0];
+            // log10 component for values that overflow JS floats (e.g. 10^666)
+            let lg = (num.coef[2] || 0) - (den.coef[2] || 0);
             const g = gcd2(Math.abs(n), Math.abs(d));
             n /= g; d /= g;
             if (d < 0) { n = -n; d = -d; }
@@ -971,9 +980,13 @@
                 const hasLetters = Object.keys(poly.coef).some(l => poly.coef[l] !== 0);
                 if (!hasLetters && poly.cst !== 0) {
                     const e = poly.cst;
-                    if (e > 0) n *= Math.pow(parseInt(p), e);
-                    else d *= Math.pow(parseInt(p), -e);
-                    delete primeBases[p];
+                    const pw = Math.pow(parseInt(p), Math.abs(e));
+                    if (Number.isFinite(pw) && Number.isSafeInteger(pw)) {
+                        if (e > 0) n *= pw;
+                        else d *= pw;
+                        delete primeBases[p];
+                    }
+                    // else: keep symbolic (exact compare) — avoids Infinity collisions on huge exponents
                 }
             });
             // drop zero polys
@@ -987,7 +1000,14 @@
             const g2 = gcd2(Math.abs(n), Math.abs(d));
             n /= g2; d /= g2;
             if (d < 0) { n = -n; d = -d; }
-            return JSON.stringify({ c: [n, d], l: letters, b: basesKey });
+            // complete the log10 estimate with the finite part
+            if (n === 0) {
+                lg = -Infinity;
+            } else if (d !== 0 && Number.isFinite(n) && Number.isFinite(d)) {
+                lg += Math.log10(Math.abs(n / d));
+            }
+            lg = Math.round(lg * 1e9) / 1e9;
+            return JSON.stringify({ c: [n, d], lg: lg, l: letters, b: basesKey });
         }
 
         // canonical key for scientific-notation answers (6.52*10^-5, 0.0000652, 1.2, 7200, -7)
@@ -1494,10 +1514,9 @@
             if (q.answerType === 'sci') {
                 return canonSci(cleanInput) === canonSci(q.answerStr);
             }
-            const noStar = cleanInput.replace(/\*/g, '');
             // answers must be expressed with positive indices: reject x^-2 / 4^-v forms
-            if (/\^\(?-/.test(noStar)) return false;
-            return canonNum(noStar) === canonNum(q.answerStr);
+            if (/\^\(?-/.test(cleanInput)) return false;
+            return canonNum(cleanInput) === canonNum(q.answerStr);
         }
 
         function submitFillAnswer() {
