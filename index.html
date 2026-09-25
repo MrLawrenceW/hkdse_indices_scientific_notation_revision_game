@@ -8,13 +8,22 @@
     <script>
         MathJax = {
             tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-            svg: { fontCache: 'global' }
+            svg: { fontCache: 'global', linebreaks: { inline: true } }
         };
     </script>
     <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
+        #question-display, .qtext { font-family: 'Times New Roman', Times, serif; }
+
+        /* Root cause fix: Tailwind preflight sets svg { display: block }, which breaks
+           inline MathJax baseline. Keep MathJax SVG inline (its own vertical-align then
+           wins). Never set vertical-align: middle !important on mjx-container or its svg. */
+        #question-display mjx-container,
+        #l3-area mjx-container { margin: 0 0.25em !important; font-size: 1em !important; }
+        #question-display mjx-container svg,
+        #l3-area mjx-container svg { display: inline-block !important; }
         .glass-panel {
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
@@ -269,7 +278,7 @@
         </div>
     </div>
 
-    <div id="game-screen" class="hidden w-full max-w-2xl flex flex-col gap-4">
+    <div id="game-screen" class="hidden w-full max-w-3xl flex flex-col gap-4">
         
         <div class="flex justify-between items-center bg-slate-800 rounded-full px-6 py-3 shadow-lg border border-slate-700">
             <div class="font-bold text-amber-400" id="level-indicator">Level 1</div>
@@ -289,7 +298,7 @@
             </button>
         </div>
 
-        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl text-center min-h-[350px] flex flex-col relative w-full overflow-hidden" id="main-game-area">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl text-center min-h-[350px] flex flex-col relative w-full" id="main-game-area">
             
             <div class="w-full flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
                 <div class="flex flex-col text-left">
@@ -310,7 +319,7 @@
                 </div>
             </div>
 
-            <div id="question-display" class="text-3xl sm:text-4xl text-white mb-6 overflow-x-auto py-6 flex items-center justify-center min-h-[120px]">
+            <div id="question-display" class="text-3xl sm:text-4xl text-white mb-6 overflow-x-auto py-6 px-4 text-center min-h-[120px] max-w-full">
                 <!-- MathJax renders here -->
             </div>
             
@@ -441,7 +450,7 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbxnrhvFWF82ExoHNXqZRRpaUqus0kJs01w51ygs9r1U3dqgS-32TdpQxxgs0Vd7B9w-/exec';
 
-        const APP_VERSION = '1';
+        const APP_VERSION = '2';
         (function watchAppVersion() {
             const file = (location.pathname.split('/').pop() || '').split('?')[0];
             const check = () => {
@@ -553,8 +562,8 @@
                 
                 if (type === 0) {
                     // decimal → scientific notation
-                    let mant = `${this.rand(1, 9)}${this.rand(1, 9)}${this.rand(1, 9)}`;
-                    const k = this.rand(4, 7);
+                    let mant = ''; const d = this.rand(2, 4); for (let i = 0; i < d; i++) mant += this.rand(1, 9);
+                    const k = this.rand(3, 8);
                     const mantTxt = mant[0] + '.' + mant.slice(1);
                     const decTxt = '0.' + '0'.repeat(k - 1) + mant;
                     ansStr = `${mantTxt}*10^-${k}`; ansTex = `${mantTxt} \\times 10^{-${k}}`;
@@ -562,8 +571,8 @@
                     opts = [ansTex, `${mantTxt} \\times 10^{-${k + 1}}`, `${mantTxt} \\times 10^{${k}}`, `${mantTxt} \\times 10^{-${k - 1}}`];
                 } else if (type === 1) {
                     // scientific notation → decimal
-                    let mant = `${this.rand(1, 9)}${this.rand(1, 9)}${this.rand(1, 9)}`;
-                    const k = this.rand(4, 7);
+                    let mant = ''; const d = this.rand(2, 4); for (let i = 0; i < d; i++) mant += this.rand(1, 9);
+                    const k = this.rand(3, 8);
                     const mantTxt = mant[0] + '.' + mant.slice(1);
                     const decTxt = '0.' + '0'.repeat(k - 1) + mant;
                     ansStr = decTxt; ansTex = decTxt;
@@ -572,7 +581,7 @@
                 } else if (type === 2) {
                     // find the exponent n
                     let mant = `${this.rand(1, 9)}${this.rand(1, 9)}`;
-                    const k = this.rand(5, 8);
+                    const k = this.rand(4, 9);
                     ansStr = `-${k}`; ansTex = `-${k}`;
                     qText = `\\text{If } 0.${'0'.repeat(k - 1)}${mant} = ${mant[0]}.${mant[1]} \\times 10^{n} \\text{, find } n.`;
                     opts = [`-${k}`, `${k}`, `-${k + 1}`, `-${k - 1}`];
@@ -596,8 +605,8 @@
 
                 if (type === 0) {
                     // Q492: (3a)^2 · a^3   (c·v)^p · v^q
-                    let c = this.rand(2, 3), p = this.rand(2, 3), q = this.rand(2, 4);
-                    while (Math.pow(c, p) === c * p || p + q === p * q || p + q === p * q + 1) { c = this.rand(2, 3); p = this.rand(2, 3); q = this.rand(2, 4); }
+                    let c = this.rand(2, 5), p = this.rand(2, 4), q = this.rand(2, 6);
+                    while (Math.pow(c, p) === c * p || p + q === p * q || p + q === p * q + 1) { c = this.rand(2, 5); p = this.rand(2, 4); q = this.rand(2, 6); }
                     const coef = Math.pow(c, p), exp = p + q;
                     ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
                     qText = `\\text{Simplify } (${c}${v})^{${p}} \\cdot ${v}^{${q}}`;
@@ -605,8 +614,8 @@
                     law = 'power';
                 } else if (type === 1) {
                     // Q494: (2x^4)^3 / (2x^5)
-                    let c = this.rand(2, 3), p = this.rand(3, 4), q = this.rand(2, 5);
-                    while (c * p <= q || c * p - q === 1 || c * p - q === c * p + q - 1) { q = this.rand(2, 5); }
+                    let c = this.rand(2, 4), p = this.rand(3, 6), q = this.rand(2, 7);
+                    while (c * p <= q || c * p - q === 1 || c * p - q === c * p + q - 1) { q = this.rand(2, 7); }
                     const coef = Math.pow(c, c - 1), exp = c * p - q;
                     ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
                     qText = `\\text{Simplify } \\frac{(${c}${v}^{${p}})^{${c}}}{${c}${v}^{${q}}}`;
@@ -614,8 +623,8 @@
                     law = 'power';
                 } else if (type === 2) {
                     // Q497: (3y^6)^4 / (3y^2)
-                    let c = this.rand(2, 3), p = this.rand(4, 6), q = this.rand(2, 3);
-                    while (4 * p <= q) { q = this.rand(2, 3); }
+                    let c = this.rand(2, 4), p = this.rand(4, 7), q = this.rand(2, 5);
+                    while (4 * p <= q) { q = this.rand(2, 5); }
                     const coef = Math.pow(c, 3), exp = 4 * p - q;
                     ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
                     qText = `\\text{Simplify } \\frac{(${c}${v}^{${p}})^{4}}{${c}${v}^{${q}}}`;
@@ -623,7 +632,7 @@
                     law = 'power';
                 } else if (type === 3) {
                     // Q496: (2n^3)^-5 = 1/(32n^15)
-                    let c = this.rand(2, 3), p = this.rand(2, 3), q = this.rand(3, 5);
+                    let c = this.rand(2, 4), p = this.rand(2, 4), q = this.rand(3, 6);
                     const coef = Math.pow(c, q), exp = p * q;
                     ansStr = `1/${coef}${v}^${exp}`; ansTex = `\\frac{1}{${coef}${v}^{${exp}}}`;
                     qText = `\\text{Simplify } (${c}${v}^{${p}})^{-${q}}`;
@@ -631,18 +640,29 @@
                     law = 'negative';
                 } else if (type === 4) {
                     // Q501: (6x^7)^2 / (4x^5)   (coefA²/coefB must be an integer)
-                    const pairs = [[4, 2, 5, 3], [4, 2, 7, 5], [6, 4, 7, 5], [6, 4, 5, 3], [8, 4, 5, 2], [8, 4, 7, 3], [9, 3, 5, 2], [9, 3, 7, 4], [10, 5, 7, 3], [12, 4, 5, 2], [6, 4, 5, 3], [4, 2, 5, 3]];
-                    const [coefA, coefB, p, q] = pairs[this.rand(0, pairs.length - 1)];
+                    // Q501: (6x^7)^2 / (4x^5)   (coefA²/coefB must be an integer ≥ 2)
+                    let coefA, coefB, p, q;
+                    do {
+                        coefA = this.rand(2, 9);
+                        coefB = this.rand(2, 9);
+                        p = this.rand(3, 9);
+                        q = this.rand(2, p - 1);
+                    } while ((coefA * coefA) % coefB !== 0 || (coefA * coefA) / coefB < 2);
                     const coef = (coefA * coefA) / coefB, exp = 2 * p - q;
                     ansStr = `${coef}${v}^${exp}`; ansTex = `${coef}${v}^{${exp}}`;
                     qText = `\\text{Simplify } \\frac{(${coefA}${v}^{${p}})^{2}}{${coefB}${v}^{${q}}}`;
                     opts = [ansTex, `\\frac{${coefA * coefA}}{${coefB}${v}^{${exp}}}`, `${coef}${v}^{${exp + 1}}`, `${coef}${v}^{${2 * p + q}}`];
                     law = 'power';
                 } else if (type === 5) {
-                    // Q502: 6x^8 / (3x^5)^2 = 2/(3x^2)  — pairs where 2q - p >= 2 (variable ends in denominator, exponent >= 2)
-                    const pairs = [[4, 2, 5, 4], [4, 2, 7, 5], [8, 4, 7, 5], [12, 4, 5, 4], [18, 6, 5, 4], [16, 4, 7, 5], [20, 5, 6, 4], [6, 3, 5, 4], [18, 6, 7, 5], [16, 4, 9, 6], [12, 4, 7, 5], [8, 4, 9, 6]];
-                    const [coefA, coefB, p, q] = pairs[this.rand(0, pairs.length - 1)];
-                    const j = 2 * q - p;             // always >= 2 by pair selection
+                    // Q502: 6x^8 / (3x^5)^2 = 2/(3x^2)  — 2q - p >= 2 (variable ends in denominator, exponent >= 2)
+                    let coefA, coefB, p, q;
+                    do {
+                        coefA = this.rand(2, 20);
+                        coefB = this.rand(2, 8);
+                        p = this.rand(2, 9);
+                        q = this.rand(2, 9);
+                    } while (2 * q - p < 2);
+                    const j = 2 * q - p;             // always >= 2 by selection
                     const g = this.gcd(coefA, coefB * coefB);
                     const nd = coefA / g, dd = (coefB * coefB) / g;
                     const vT = `${v}^{${j}}`;
@@ -687,7 +707,7 @@
                     law = 'base_convert';
                 } else if (type === 10) {
                     // Q498 (HKDSE 2015 P2 Q2): 8^222 · 5^666 = 10^666 — large indices per paper
-                    const a = [111, 222, 333][this.rand(0, 2)];
+                    const a = this.rand(1, 9) * 111;
                     const b = a * 3;
                     ansStr = `10^${b}`; ansTex = `10^{${b}}`;
                     qText = `\\text{Simplify } 8^{${a}} \\cdot 5^{${b}}`;
@@ -695,7 +715,8 @@
                     law = 'base_convert';
                 } else {
                     // Q506: (cv)^3 / (4v^-5)^-1 = 4c^3/v^2
-                    const c = this.rand(2, 3);
+                    let c = this.rand(2, 5);
+                    while (c === 4) c = this.rand(2, 5);   // c=4 makes distractor 4c^2 = c^3
                     const coef = 4 * c * c * c;
                     ansStr = `${coef}/${v}^2`; ansTex = `\\frac{${coef}}{${v}^{2}}`;
                     qText = `\\text{Simplify } \\frac{(${c}${v})^{3}}{(4${v}^{-5})^{-1}}`;
@@ -777,7 +798,7 @@
             // T1: Q221 style ??(xy)^2 / x^{-5} y^6  ?? x^7 / y^4
             setI1: function() {
                 const v = ['x', 'm', 'a'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'm' ? 'n' : 'b');
-                const k = this.rand(1, 2);
+                const k = this.rand(1, 3);
                 const parts = [
                     this.partFrac(v, u, 1, 1, 2, -5, 6, 'use_a'),
                     this.partFrac(v, u, k, 1, 3, 4, -5, 'use_a')
@@ -798,7 +819,7 @@
             // T3: Q227 style ??(x^8 y^7)^2 / x^5 y^{-6}  ?? x^11 y^20
             setI3: function() {
                 const v = ['x', 'a', 'm'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'a' ? 'b' : 'n');
-                const k = this.rand(6, 9), j = this.rand(5, 7);
+                const k = this.rand(4, 10), j = this.rand(3, 8);
                 const parts = [
                     this.partFrac(v, u, k, j, 2, k - 3, -6, 'use_a'),
                     this.partFrac(v, u, k - 2, j - 1, 3, k - 4, 2, 'use_a')
@@ -839,7 +860,7 @@
             // T7: Q229 style ??xy^7 / (x^{-2} y^3)^4  ?? x^9 / y^5
             setI7: function() {
                 const v = ['x', 'a', 'm'][this.rand(0, 2)], u = v === 'x' ? 'y' : (v === 'a' ? 'b' : 'n');
-                const k = this.rand(6, 8);
+                const k = this.rand(5, 10);
                 const parts = [
                     this.partFrac(v, u, 1, k, 1, -8, 12, 'use_a'),
                     this.partFrac(v, u, 1, k - 2, 1, -6, 9, 'use_a')
@@ -1537,7 +1558,7 @@
                 <span class="text-sm font-bold text-emerald-400">Part ${part.partLabel}</span>
                 <span id="l3-status-${pi}" class="${part.done ? 'text-green-400' : 'text-slate-400'} text-sm font-semibold">${part.done ? '✓ Correct' : ''}</span>
             </div>`;
-            inner += `<div id="l3-q-${pi}" class="text-xl sm:text-2xl text-white mb-3 text-center overflow-x-auto min-h-[40px] flex items-center justify-center">$ \\text{Simplify } ${part.displayTex} $</div>`;
+            inner += `<div id="l3-q-${pi}" class="text-xl sm:text-2xl text-white mb-3 text-center overflow-x-auto px-4 min-h-[40px] leading-relaxed">$ \\text{Simplify } ${part.displayTex} $</div>`;
             if (part.done) {
                 inner += `<div class="text-center text-green-400 text-sm py-2 font-semibold">Answer: $ ${part.mcAnswerStr} $</div>`;
             } else if (part.mode === 'mc') {
