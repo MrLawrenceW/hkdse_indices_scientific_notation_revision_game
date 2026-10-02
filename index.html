@@ -161,7 +161,7 @@
         </div>
     </div>
 
-    <div id="dashboard-screen" class="hidden w-full max-w-3xl flex flex-col gap-6 transition-all duration-500">
+    <div id="dashboard-screen" class="hidden w-full max-w-4xl flex flex-col gap-6 transition-all duration-500">
         
         <!-- Header -->
         <div class="glass-panel rounded-2xl p-6 flex justify-between items-center shadow-xl">
@@ -193,11 +193,20 @@
             </div>
 
             <!-- Score Board -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
+                <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-0">
+                    <div class="text-3xl mb-2" id="badge-icon-0">🔒</div>
+                    <div class="font-bold text-slate-200">Level 0</div>
+                    <div class="text-xs text-slate-400 mb-2">Sci. Notation</div>
+                    <div id="badge-status-0" class="text-sm font-semibold text-slate-500">Not Attempted</div>
+                    <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
+                        <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-0">0</span> marks</span>
+                    </div>
+                </div>
                 <div class="bg-slate-800/80 rounded-xl p-4 text-center border border-slate-700 transition duration-300" id="badge-card-1">
                     <div class="text-3xl mb-2" id="badge-icon-1">🔒</div>
                     <div class="font-bold text-slate-200">Level 1</div>
-                    <div class="text-xs text-slate-400 mb-2">Sci. Notation</div>
+                    <div class="text-xs text-slate-400 mb-2">Binary Numbers</div>
                     <div id="badge-status-1" class="text-sm font-semibold text-slate-500">Not Attempted</div>
                     <div class="mt-2 inline-flex items-center gap-1 bg-slate-900/80 border border-amber-500/30 rounded-full px-3 py-1">
                         <span class="text-xs text-amber-300 font-bold">⭐ <span id="score-1">0</span> marks</span>
@@ -251,13 +260,21 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button onclick="startGame(1)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-green-500 group relative overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <button onclick="startGame(0)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-green-500 group relative overflow-hidden">
                 <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-xl text-white group-hover:text-green-400 transition">Level 1</h3>
+                    <h3 class="font-bold text-xl text-white group-hover:text-green-400 transition">Level 0</h3>
                     <span class="text-2xl group-hover:scale-110 transition">🟢</span>
                 </div>
                 <p class="text-slate-400 text-sm relative z-10">Scientific notation: convert decimals ↔ scientific notation. (Core)</p>
+            </button>
+
+            <button onclick="startGame(1)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-teal-500 group relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-xl text-white group-hover:text-teal-400 transition">Level 1</h3>
+                    <span class="text-2xl group-hover:scale-110 transition">🟦</span>
+                </div>
+                <p class="text-slate-400 text-sm relative z-10">Binary numbers: binary ↔ powers of 2, Paper 2 MCQs (DSE P2 Q649–653 style).</p>
             </button>
 
             <button onclick="startGame(2)" class="glass-panel rounded-2xl p-6 text-left hover:-translate-y-1 transition duration-300 border-t-4 border-amber-500 group relative overflow-hidden">
@@ -287,7 +304,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <div class="text-slate-300 font-mono bg-slate-900 px-3 py-1 rounded-full text-sm font-semibold">
-                    Q: <span id="q-counter">1/5</span>
+                    Q: <span id="q-counter">1/10</span>
                 </div>
                 <div class="text-amber-300 font-mono bg-slate-900 border border-amber-500/30 px-3 py-1 rounded-full text-sm font-semibold">
                     ⭐ <span id="live-score">0</span>
@@ -373,6 +390,7 @@
                 <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Negative & Zero:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(a^{-n} = \frac{1}{a^n},\ a^0 = 1\)</span></li>
                 <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Power of Fraction:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\((\frac{a}{b})^n = \frac{a^n}{b^n}\)</span></li>
                 <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Sci. Notation:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(N = a \times 10^n,\ 1 \le a < 10\)</span></li>
+                <li class="flex justify-between items-center"><span class="text-slate-300 text-sm font-sans">Binary → Denary:</span> <span class="bg-slate-900/80 px-2 py-1 rounded text-white border border-slate-700">\(1011_2 = 2^3+2^1+2^0 = 11\)</span></li>
             </ul>
             <button onclick="toggleCheatSheet()" class="mt-8 w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg active:scale-95 transition">Close</button>
         </div>
@@ -432,6 +450,10 @@
                     <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Scientific Notation</span>
                     <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(N = a \times 10^n\)</span>
                 </button>
+                <button onclick="submitWrongReflection('binary')" class="w-full text-left px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition active:scale-95 flex items-center justify-between group">
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Binary Number</span>
+                    <span class="font-serif bg-slate-900 px-2 py-1 rounded text-xs text-amber-300">\(1011_2 = 2^3+2^1+2^0\)</span>
+                </button>
             </div>
         </div>
     </div>
@@ -450,9 +472,9 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbxnrhvFWF82ExoHNXqZRRpaUqus0kJs01w51ygs9r1U3dqgS-32TdpQxxgs0Vd7B9w-/exec';
 
-        const APP_VERSION = '2';
+        const APP_VERSION = '3';
         (function watchAppVersion() {
-            const file = (location.pathname.split('/').pop() || '').split('?')[0];
+            const file = (location.pathname.split('/').pop() || 'index.html').split('?')[0];
             const check = () => {
                 fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
                     .then(r => r.json())
@@ -468,7 +490,7 @@
         })();
 
         let studentProfile = null;
-        let badgeRecords = { level1: false, level2: false, level3: false };
+        let badgeRecords = { level0: false, level1: false, level2: false, level3: false };
         let currentLevel = 1;
         let currentQuestionIndex = 0;
         let lives = 3;
@@ -481,15 +503,21 @@
         
         // --- SCORE BOARD ---
         // Full marks per level, marks deducted per heart lost. Marks accumulate across replays.
+        const NUM_QUESTIONS = 10;
+        const LEVEL3_SETS = 5;
         const MARKS = {
+            0: { full: 3, perHeart: 1 },
             1: { full: 3, perHeart: 1 },
             2: { full: 9, perHeart: 3 },
             3: { full: 15, perHeart: 5 }
         };
-        let scoreTotals = { level1: 0, level2: 0, level3: 0 };
+        let scoreTotals = { level0: 0, level1: 0, level2: 0, level3: 0 };
+        let mistakeLog = [];     // mistakes + reflections pending submission to the teacher
+        let lastMistake = null;  // the mistake currently awaiting the reflection choice
         
         // Tracking variables for correct percentage
         let levelStats = { 
+            level0: { correct: 0, total: 0 },
             level1: { correct: 0, total: 0 }, 
             level2: { correct: 0, total: 0 }, 
             level3: { correct: 0, total: 0 } 
@@ -553,8 +581,8 @@
                 return `\\frac{${num}}{${den}}`;
             },
 
-            // --- Level 1: scientific notation only (3 types) ---
-            generateL1: function() {
+            // --- Level 0: scientific notation only (3 types) ---
+            generateL0: function() {
                 const type = this.rand(0, 2);
                 const v = ['x', 'y', 'a', 'm', 'n'][this.rand(0, 4)];
                 let qText = "", ansStr = "", ansTex = "", opts = [], law = 'sci_notation';
@@ -596,6 +624,168 @@
                     answerType: 'sci'
                 };
             },
+
+            // --- Level 1: binary numbers (5 types, sort_paper2.pdf pg 137 J17 Q649-Q653) ---
+            // Paper 2 MCQs only. Every number is randomized (the paper's exact numbers
+            // are excluded), so each replay produces fresh questions from a huge pool.
+            forbiddenBin: new Set(['1010010001001', '111010100000', '111100010000',
+                '1110100100000', '1111000010000', '110001001011', '110100100011',
+                '1100001001011', '1101001000011', '100110000010110', '1011001011001011']),
+            // perturb one exponent of a desc-sorted exponent list without collisions
+            bumpExps: function(expo, idx, delta) {
+                const s = new Set(expo);
+                let e = expo[idx] + delta;
+                let guard = 0;
+                while (s.has(e) && guard++ < 30) e += delta;
+                const out = expo.slice();
+                out[idx] = e;
+                return out.sort((a, b) => b - a);
+            },
+            // 3 wrong binary strings near val (flip a bit / add / subtract a power of 2)
+            binDistractors: function(val, binStr) {
+                const len = binStr.length;
+                const out = new Set();
+                let guard = 0;
+                while (out.size < 3 && guard++ < 60) {
+                    const mode = this.rand(0, 2);
+                    const q = Math.pow(2, this.rand(1, len - 2));
+                    const v2 = mode === 0 ? (val ^ q) : (mode === 1 ? val + q : val - q);
+                    if (v2 > 0 && v2 !== val) out.add(v2.toString(2));
+                }
+                let p = 1;
+                while (out.size < 3 && p < 20) {
+                    const v2 = val + p * Math.pow(2, Math.max(0, len - 2 - p));
+                    if (v2 > 0) out.add(v2.toString(2));
+                    p++;
+                }
+                return [...out];
+            },
+            generateL1: function() {
+                const type = this.rand(0, 4);
+                const instruction = type === 0
+                    ? "Express the binary number as a sum of powers of 2:"
+                    : (type === 3
+                        ? "Express the binary number in the form a × 2^k + b:"
+                        : (type === 4
+                            ? "Express the binary number in expanded form:"
+                            : "Express the answer as a binary number:"));
+                let qText = "", ansStr = "", ansTex = "", opts = [];
+                const law = 'binary';
+
+                if (type === 0) {
+                    // Q649 style: 1010010001001_2 = 2^12+2^10+2^7+2^3
+                    let binStr = '', expo = [], tries = 0;
+                    do {
+                        const len = this.rand(9, 13);
+                        const ones = new Set([len - 1]);
+                        const k = this.rand(3, 4);
+                        while (ones.size < k) ones.add(this.rand(0, len - 2));
+                        expo = [...ones].sort((a, b) => b - a);
+                        binStr = Array.from({ length: len }, (_, i) => ones.has(i) ? '1' : '0').reverse().join('');
+                        tries++;
+                    } while (this.forbiddenBin.has(binStr) && tries < 100);
+                    ansStr = String(expo.reduce((s, e) => s + Math.pow(2, e), 0));
+                    const d1 = this.bumpExps(expo, 0, 1);
+                    const d2 = this.bumpExps(expo, expo.length - 1, 1);
+                    const d3 = (expo[expo.length - 1] >= 1)
+                        ? this.bumpExps(expo, expo.length - 1, -1)
+                        : this.bumpExps(expo, 0, 2);
+                    opts = [expo, d1, d2, d3].map(ex => ex.map(e => `2^{${e}}`).join('+'));
+                    ansTex = opts[0];
+                    qText = `${binStr}_2 =`;
+                } else if (type === 1) {
+                    // Q650 style: 7×2^10 + 2^8 + 5×2^3 − 2^3 = 1110100100000_2
+                    const term = (coef, k, forceMul) => (coef === 1 && !forceMul) ? `2^{${k}}` : `${coef} \\times 2^{${k}}`;
+                    let a, c, k1, k2, k3, val, binStr, disp, norm, tries = 0;
+                    do {
+                        k1 = this.rand(7, 10);
+                        k2 = this.rand(4, k1 - 2);
+                        k3 = this.rand(1, k2 - 2);
+                        a = this.rand(2, 9);
+                        c = this.rand(2, 9);
+                        val = a * Math.pow(2, k1) + Math.pow(2, k2) + (c - 1) * Math.pow(2, k3);
+                        binStr = val.toString(2);
+                        disp = `${term(a, k1, true)} + 2^{${k2}} + ${term(c, k3, true)} - 2^{${k3}}`;
+                        norm = disp.replace(/\\times /g, '*').replace(/ /g, '').replace(/[{}]/g, '');
+                        tries++;
+                    } while ((this.forbiddenBin.has(binStr) || norm === '7*2^10+2^8+5*2^3-2^3') && tries < 100);
+                    ansStr = String(val);
+                    ansTex = `${binStr}_2`;
+                    qText = `${disp} =`;
+                    opts = [binStr, ...this.binDistractors(val, binStr)].map(b => `${b}_2`);
+                } else if (type === 2) {
+                    // Q651 style: 11 + 2^6 + 2^10 + 2^11 = 110001001011_2
+                    let cst, e1, e2, e3, val, binStr, disp, tries = 0;
+                    do {
+                        e3 = this.rand(9, 11);
+                        e2 = this.rand(6, e3 - 2);
+                        e1 = this.rand(3, e2 - 2);
+                        cst = this.rand(1, 15);
+                        val = cst + Math.pow(2, e1) + Math.pow(2, e2) + Math.pow(2, e3);
+                        binStr = val.toString(2);
+                        disp = `${cst} + 2^{${e1}} + 2^{${e2}} + 2^{${e3}}`;
+                        tries++;
+                    } while ((this.forbiddenBin.has(binStr) || disp === '11 + 2^{6} + 2^{10} + 2^{11}') && tries < 100);
+                    ansStr = String(val);
+                    ansTex = `${binStr}_2`;
+                    qText = `${disp} =`;
+                    opts = [binStr, ...this.binDistractors(val, binStr)].map(b => `${b}_2`);
+                } else if (type === 3) {
+                    // Q652 style: 100110000010110_2 = 19×2^10 + 22 (leading bits × 2^k + trailing bits)
+                    let binStr = '', a = 0, b = 0, k = 0, tries = 0;
+                    do {
+                        const len = this.rand(10, 14);
+                        k = this.rand(4, len - 4);
+                        binStr = '1' + Array.from({ length: len - 1 }, () => this.rand(0, 1)).join('');
+                        a = parseInt(binStr.slice(0, len - k), 2);
+                        b = parseInt(binStr.slice(len - k), 2);
+                        tries++;
+                    } while ((b < 2 || this.forbiddenBin.has(binStr)) && tries < 100);
+                    ansStr = String(a * Math.pow(2, k) + b);
+                    ansTex = `${a} \\times 2^{${k}} + ${b}`;
+                    qText = `${binStr}_2 =`;
+                    opts = [
+                        `${a} \\times 2^{${k}} + ${b}`,
+                        `${a} \\times 2^{${k}} + ${2 * b}`,
+                        `${a} \\times 2^{${k + 1}} + ${b}`,
+                        `${a} \\times 2^{${k + 1}} + ${2 * b}`
+                    ];
+                } else {
+                    // Q653 style: 1011001011001011_2 = 11×2^12 + 11×2^6 + 11 (grouped 1011 blocks)
+                    let p = 0, q = 0, binStr = '', tries = 0;
+                    do {
+                        p = this.rand(8, 12);
+                        q = this.rand(4, p - 4);
+                        tries++;
+                    } while (p === 12 && q === 6 && tries < 100);
+                    const len = p + 4;
+                    binStr = Array.from({ length: len }, (_, i) => {
+                        const pos = len - 1 - i;
+                        // 11 = 1011_2: bits at block start+3, start+1, start (not start+2)
+                        const in11 = (s) => (pos === s + 3 || pos === s + 1 || pos === s);
+                        return (in11(p) || in11(q) || in11(0)) ? '1' : '0';
+                    }).join('');
+                    ansStr = String(11 * Math.pow(2, p) + 11 * Math.pow(2, q) + 11);
+                    ansTex = `11 \\times 2^{${p}} + 11 \\times 2^{${q}} + 11`;
+                    qText = `${binStr}_2 =`;
+                    opts = [
+                        `11 \\times 2^{${p}} + 11 \\times 2^{${q}} + 11`,
+                        `11 \\times 2^{${p - 1}} + 11 \\times 2^{${q - 1}} + 11`,
+                        `11 \\times 2^{${p + 1}} + 11 \\times 2^{${q + 1}} + 11`,
+                        `11 \\times 2^{${p + 2}} + 11 \\times 2^{${q + 2}} + 11`
+                    ];
+                }
+
+                return {
+                    instruction: instruction,
+                    paper: "Paper 2",
+                    text: `$ ${qText} $`, answerStr: ansStr, mcAnswerStr: ansTex,
+                    variables: [], options: this.shuffle(opts.map(o => `$ ${o} $`)),
+                    firstStepLaw: law,
+                    answerType: 'binary'
+                };
+            },
+
             // --- Level 2: laws of indices — DSE Paper 2 Q1 patterns (Q492-Q507) ---
             generateL2: function() {
                 const type = this.rand(0, 12);
@@ -1125,6 +1315,33 @@
         }
 
 
+        // canonical value for binary-number answers (binary strings, a×2^k+b, sums of powers)
+        function canonBin(s) {
+            let str = String(s).toLowerCase().replace(/\s+/g, '').replace(/×/g, '*');
+            if (/^[01]+$/.test(str)) return String(parseInt(str, 2));
+            if (!/^[+-]?[0-9*\^_+.-]+$/.test(str)) return '?' + str;
+            const terms = str.match(/[+-]?[^+-]+/g) || [];
+            let val = 0;
+            for (const t of terms) {
+                if (!t) continue;
+                const sign = t[0] === '-' ? -1 : 1;
+                const body = t.replace(/^[+-]/, '');
+                let m;
+                if ((m = body.match(/^(\d+)\*(\d+)\^(\d+)$/))) {
+                    val += sign * parseInt(m[1], 10) * Math.pow(parseInt(m[2], 10), parseInt(m[3], 10));
+                } else if ((m = body.match(/^(\d+)\^(\d+)$/))) {
+                    val += sign * Math.pow(parseInt(m[1], 10), parseInt(m[2], 10));
+                } else if ((m = body.match(/^(\d+)_2$/))) {
+                    val += sign * parseInt(m[1], 2);
+                } else if (/^\d+$/.test(body)) {
+                    val += sign * parseInt(body, 10);
+                } else {
+                    return '?' + str;
+                }
+            }
+            return String(val);
+        }
+
         // --- COLORFUL ANSWER ANIMATIONS (confetti / flash / bounce) ---
         function celebrate(big) {
             if (typeof confetti === 'undefined') return;
@@ -1198,6 +1415,7 @@
             document.getElementById('display-no').textContent = sNo;
 
             loadScores();
+            loadMistakes();
 
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('dashboard-screen').classList.remove('hidden');
@@ -1229,7 +1447,7 @@
         }
 
         function updatePassportUI() {
-            for (let i = 1; i <= 3; i++) {
+            for (let i = 0; i <= 3; i++) {
                 const statusEl = document.getElementById(`badge-status-${i}`);
                 const iconEl = document.getElementById(`badge-icon-${i}`);
                 const cardEl = document.getElementById(`badge-card-${i}`);
@@ -1257,13 +1475,21 @@
 
         function loadScores() {
             const key = getScoreStorageKey();
-            scoreTotals = { level1: 0, level2: 0, level3: 0 };
+            scoreTotals = { level0: 0, level1: 0, level2: 0, level3: 0 };
             if (!key) return;
             try {
                 const raw = localStorage.getItem(key);
                 if (raw) {
                     const saved = JSON.parse(raw);
-                    if (saved && typeof saved.level1 === 'number') scoreTotals = saved;
+                    if (saved && typeof saved.level1 === 'number') {
+                        // migrate old 3-level saves: old Level 1 (sci. notation) is now Level 0
+                        if (typeof saved.level0 !== 'number') {
+                            saved.level0 = saved.level1;
+                            saved.level1 = 0;
+                        }
+                        scoreTotals = saved;
+                        saveScores();
+                    }
                 }
             } catch (e) { console.log('loadScores error', e); }
         }
@@ -1276,11 +1502,73 @@
             } catch (e) { console.log('saveScores error', e); }
         }
 
+        // --- MISTAKE & REFLECTION LOG (sent to teacher on submit, analysed by the mistake-analyst agent) ---
+        function getMistakeStorageKey() {
+            if (!studentProfile) return null;
+            return `hkdse_ind_sci_mistakes_${studentProfile.class}_${studentProfile.no}_${studentProfile.name}`;
+        }
+
+        function loadMistakes() {
+            const key = getMistakeStorageKey();
+            mistakeLog = [];
+            lastMistake = null;
+            if (!key) return;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const saved = JSON.parse(raw);
+                    if (Array.isArray(saved)) mistakeLog = saved;
+                }
+            } catch (e) { console.log('loadMistakes error', e); }
+        }
+
+        function saveMistakes() {
+            const key = getMistakeStorageKey();
+            if (!key) return;
+            try {
+                localStorage.setItem(key, JSON.stringify(mistakeLog));
+            } catch (e) { console.log('saveMistakes error', e); }
+        }
+
+        function clearMistakes() {
+            mistakeLog = [];
+            lastMistake = null;
+            const key = getMistakeStorageKey();
+            if (key) {
+                try { localStorage.removeItem(key); } catch (e) { console.log('clearMistakes error', e); }
+            }
+        }
+
+        // Start a mistake record (called on every wrong answer BEFORE the reflection modal).
+        function logMistake(q, wrongOption) {
+            lastMistake = {
+                topic: 'Indices & Scientific Notation',
+                level: currentLevel,
+                instruction: q.instruction || '',
+                law: q.firstStepLaw || '',
+                text: q.text || (q.displayTex ? `\\text{Simplify } ${q.displayTex}` : ''),
+                wrongOption: wrongOption || '',
+                answerStr: q.answerStr || '',
+                studentLaw: null,
+                lawCorrect: null,
+                ts: new Date().toISOString()
+            };
+        }
+
+        // Push the current mistake (now with reflection attached) into the log.
+        function commitMistake() {
+            if (!lastMistake) return;
+            mistakeLog.push(lastMistake);
+            lastMistake = null;
+            saveMistakes();
+        }
+
         function updateScoreboardUI() {
+            document.getElementById('score-0').textContent = scoreTotals.level0;
             document.getElementById('score-1').textContent = scoreTotals.level1;
             document.getElementById('score-2').textContent = scoreTotals.level2;
             document.getElementById('score-3').textContent = scoreTotals.level3;
-            document.getElementById('total-marks').textContent = scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3;
+            document.getElementById('total-marks').textContent = scoreTotals.level0 + scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3;
         }
 
         // Marks for the CURRENT attempt: full minus (hearts lost × per-heart)
@@ -1298,9 +1586,9 @@
 
         function resetBadges() {
             if(confirm("Are you sure you want to reset your progress and marks?")) {
-                badgeRecords = { level1: false, level2: false, level3: false };
-                levelStats = { level1: { correct: 0, total: 0 }, level2: { correct: 0, total: 0 }, level3: { correct: 0, total: 0 } };
-                scoreTotals = { level1: 0, level2: 0, level3: 0 };
+                badgeRecords = { level0: false, level1: false, level2: false, level3: false };
+                levelStats = { level0: { correct: 0, total: 0 }, level1: { correct: 0, total: 0 }, level2: { correct: 0, total: 0 }, level3: { correct: 0, total: 0 } };
+                scoreTotals = { level0: 0, level1: 0, level2: 0, level3: 0 };
                 saveScores();
                 updatePassportUI();
                 showToast("Progress and marks reset.", "info");
@@ -1312,8 +1600,8 @@
             document.getElementById('dashboard-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
             
-            const levelColors = ['text-green-400', 'text-amber-400', 'text-red-400'];
-            document.getElementById('level-indicator').className = `font-bold ${levelColors[level-1]}`;
+            const levelColors = ['text-green-400', 'text-teal-400', 'text-amber-400', 'text-red-400'];
+            document.getElementById('level-indicator').className = `font-bold ${levelColors[level]}`;
             document.getElementById('level-indicator').textContent = `Level ${level}`;
 
             lives = 3;
@@ -1325,11 +1613,11 @@
             updateLiveScore();
             
             if (level === 3) {
-                // Level 3: 5 multi-part question sets; each set shown as (a)(b)(c) blocks on one page
+                // Level 3: LEVEL3_SETS multi-part question sets; each set shown as (a)(b)(c) blocks on one page
                 const usedTexts = new Set();
                 const usedOpts = new Set();
                 const usedAns = new Set();
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < LEVEL3_SETS; i++) {
                     let parts = null, tKey = null, oKey = null, aKey = null, tries = 0;
                     do {
                         parts = MathGen.generateL3Set();
@@ -1357,14 +1645,14 @@
                 return;
             }
             
-            // Levels 1 & 2: 10 single questions (no duplicate questions, MC options or answers in a game)
+            // Levels 0, 1 & 2: NUM_QUESTIONS single questions (no duplicate questions, MC options or answers in a game)
             const usedTexts = new Set();
             const usedOpts = new Set();
             const usedAns = new Set();
-            for(let i=0; i<10; i++) {
+            for(let i=0; i<NUM_QUESTIONS; i++) {
                 let q = null, tKey = null, oKey = null, aKey = null, tries = 0;
                 do {
-                    q = (level === 1) ? MathGen.generateL1() : MathGen.generateL2();
+                    q = (level === 0) ? MathGen.generateL0() : ((level === 1) ? MathGen.generateL1() : MathGen.generateL2());
                     tKey = q.text;
                     oKey = [...q.options].sort().join('~');
                     aKey = q.answerStr;
@@ -1416,6 +1704,8 @@
             } else {
                 currentQuestionMode = selectedFormat;
             }
+            // Binary level is Paper 2 MCQs only (teacher's format rule)
+            if (currentLevel === 1) currentQuestionMode = 'mc';
 
             const mcArea = document.getElementById('mc-options');
             const fillArea = document.getElementById('conventional-area');
@@ -1527,6 +1817,7 @@
             if (part.done) return;
             activePart = part;
             const isCorrect = (part.options[btnIdx] === `$ ${part.mcAnswerStr} $`);
+            if (!isCorrect) logMistake(part, part.options[btnIdx]);
             processSetAnswer(pi, isCorrect);
         }
 
@@ -1546,6 +1837,7 @@
                 showToast("Express your answer with positive indices (e.g. 1/x^2, not x^-2).", "info");
             }
             const isCorrect = checkFillAnswer(cleanInput, part);
+            if (!isCorrect) logMistake(part, cleanInput);
             processSetAnswer(pi, isCorrect);
         }
 
@@ -1647,11 +1939,15 @@
             const q = currentQuestions[currentQuestionIndex];
             const selectedText = q.options[btnIndex];
             const isCorrect = (selectedText === `$ ${q.mcAnswerStr} $`);
+            if (!isCorrect) logMistake(q, selectedText);
             processAnswer(isCorrect);
         }
 
-        // Index / scientific-notation answer checking.
+        // Index / scientific-notation / binary answer checking.
         function checkFillAnswer(cleanInput, q) {
+            if (q.answerType === 'binary') {
+                return canonBin(cleanInput) === canonBin(q.answerStr);
+            }
             if (q.answerType === 'sci') {
                 return canonSci(cleanInput) === canonSci(q.answerStr);
             }
@@ -1674,6 +1970,7 @@
                 showToast("Express your answer with positive indices (e.g. 1/x^2, not x^-2).", "info");
             }
             const isCorrect = checkFillAnswer(cleanInput, q);
+            if (!isCorrect) logMistake(q, cleanInput);
             processAnswer(isCorrect);
         }
 
@@ -1712,6 +2009,13 @@
 
             let isLawCorrect = (selectedLaw === actualLaw);
             if (actualLaw === 'use_a' && selectedLaw !== '') isLawCorrect = true;
+
+            // Attach the reflection choice to the pending mistake record and save it.
+            if (lastMistake) {
+                lastMistake.studentLaw = selectedLaw;
+                lastMistake.lawCorrect = isLawCorrect;
+                commitMistake();
+            }
 
             document.getElementById('wrong-reflection-modal').classList.add('hidden');
 
@@ -1851,6 +2155,9 @@
                 case 'sci_notation':
                     hint = "Scientific notation: $N = a \\times 10^n$ with $1 \\le a < 10$. Count how many places the decimal point moves — left is positive $n$, right is negative $n$.";
                     break;
+                case 'binary':
+                    hint = "Write the place values (… 16 8 4 2 1) under the binary digits and add the values where the digit is 1: $1011_2 = 2^3 + 2^1 + 2^0 = 11$. To go the other way, write the number as a sum of powers of 2 and put a 1 in each matching place.";
+                    break;
                 case 'use_a':
                     hint = "This is part (b)! Simplify using the same steps as part (a) — the laws are identical, only the numbers change.";
                     break;
@@ -1898,6 +2205,9 @@
                 class: studentProfile.class,
                 no: studentProfile.no,
                 name: studentProfile.name,
+                level0: badgeRecords.level0,
+                level0Percent: getPercent('level0'),
+                level0Marks: scoreTotals.level0,
                 level1: badgeRecords.level1,
                 level1Percent: getPercent('level1'),
                 level1Marks: scoreTotals.level1,
@@ -1907,7 +2217,8 @@
                 level3: badgeRecords.level3,
                 level3Percent: getPercent('level3'),
                 level3Marks: scoreTotals.level3,
-                totalMarks: scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3
+                totalMarks: scoreTotals.level0 + scoreTotals.level1 + scoreTotals.level2 + scoreTotals.level3,
+                mistakes: mistakeLog.slice()
             };
 
             // Send as text/plain (simple request, no CORS preflight) so we can read the
@@ -1923,6 +2234,7 @@
             .then(resp => resp.json())
             .then(data => {
                 if (data && data.status === 'success') {
+                    clearMistakes();
                     showToast("Data submitted to teacher successfully!", "success");
                 } else {
                     showToast("Server replied but data not saved: " + (data && data.message ? data.message : 'unknown error'), "error");
