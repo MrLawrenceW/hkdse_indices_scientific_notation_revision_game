@@ -472,14 +472,23 @@
         const GOOGLE_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbxnrhvFWF82ExoHNXqZRRpaUqus0kJs01w51ygs9r1U3dqgS-32TdpQxxgs0Vd7B9w-/exec';
 
-        const APP_VERSION = '3';
+        const APP_VERSION = '5';
         (function watchAppVersion() {
-            const file = (location.pathname.split('/').pop() || 'index.html').split('?')[0];
+            // GitHub Pages serves this site as .../<repo>/ (index.html). Tolerate
+            // every URL shape: no trailing slash, query strings, direct index.html link.
+            let file = location.pathname.replace(/\/+$/, '').split('/').pop() || 'index.html';
+            if (file.indexOf('.') === -1) file = 'index.html';
             const check = () => {
                 fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
                     .then(r => r.json())
                     .then(data => {
-                        if (data && data[file] && data[file] !== APP_VERSION) location.reload();
+                        const newest = data && (data[file] || data['index.html']);
+                        if (newest && newest !== APP_VERSION) {
+                            // cache-busted reload (GitHub Pages serves HTML with max-age=600,
+                            // so a plain reload() can bounce back the stale page)
+                            const base = location.href.split('#')[0].replace(/[?&]v=[^&]*/g, '');
+                            location.href = base + (base.indexOf('?') === -1 ? '?' : '&') + 'v=' + encodeURIComponent(newest);
+                        }
                     })
                     .catch(() => {});
             };
@@ -507,7 +516,7 @@
         const LEVEL3_SETS = 5;
         const MARKS = {
             0: { full: 3, perHeart: 1 },
-            1: { full: 3, perHeart: 1 },
+            1: { full: 10, perHeart: 3 },
             2: { full: 9, perHeart: 3 },
             3: { full: 15, perHeart: 5 }
         };
